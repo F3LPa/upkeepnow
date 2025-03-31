@@ -1,6 +1,6 @@
 import math
 
-def exemplo_funcao():
+def fun_math():
     x = 10
     y = 5
     # Variável não utilizada
@@ -14,4 +14,4 @@ def exemplo_funcao():
 myVar = 42
 MyAnotherVar = 100
 
-exemplo_funcao()
+fun_math()
