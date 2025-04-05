@@ -22,6 +22,8 @@ class Funcionario(Base):
     cargo: Optional[str] = Column(sa.String(30))
     inicio_turno: time = Column(sa.Time)
     fim_turno: time = Column(sa.Time)
-    nivel: Optional[str] = Column(sa.Enum('funcionario', 'gestor', 'mestre'), nullable=False)
+    nivel: Optional[str] = Column(sa.Enum("funcionario", "gestor", "mestre"))
 
-    atividades_criadas: List[Atividade] = orm.relationship('Atividade', back_populates='criador')
+    atividades_criadas: List[Atividade] = orm.relationship(
+        "Atividade", back_populates="criador"
+    )
