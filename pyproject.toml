@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "upkeepnow"
+version = "0.1.0"
+description = "Este projeto é responsavel pelo backend do upkeepnow"
+authors = ["p3dr01v0 <pedroivo.martinez@hotmail.com>"]
+readme = "README.md"
+packages = [{include = "upkeepnow"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.110.0"
+sqlalchemy = "^2.0.40"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.3.2"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
