@@ -41,7 +41,5 @@ def create_tables() -> None:
     if not __engine:
         create_engine()
 
-    import models.__all_models
-
     Base.metadata.drop_all(__engine)
     Base.metadata.create_all(__engine)

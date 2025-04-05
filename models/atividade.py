@@ -2,7 +2,7 @@ import sqlalchemy as sa
 import sqlalchemy.orm as orm
 from sqlalchemy import Column
 
-from datetime import datetime, time
+from datetime import datetime
 from typing import Optional
 
 from models.model_base import Base
