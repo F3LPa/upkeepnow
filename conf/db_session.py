@@ -1,8 +1,10 @@
+import os
 from typing import Optional
 
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.future.engine import Engine
+from dotenv import load_dotenv
 
 from models.model_base import Base
 
@@ -18,8 +20,16 @@ def create_engine(sqlite: bool = False) -> Engine:
     if __engine:
         return
 
-    conn_str = "jdbc:mysql://localhost:3306/upkeepnow"
-    __engine = sa.create_engine(url=conn_str, echo=False)
+    load_dotenv()
+
+    DB_USER = os.getenv("DB_USER")
+    DB_PASSWORD = os.getenv("DB_PASSWORD")
+    DB_HOST = os.getenv("DB_HOST")
+    DB_PORT = os.getenv("DB_PORT")
+    DB_NAME = os.getenv("DB_NAME")
+
+    CONN_STR = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    __engine = sa.create_engine(url=CONN_STR, echo=False)
 
     return __engine
 
@@ -30,9 +40,13 @@ def create_session() -> None:
     if not __engine:
         create_engine()
 
-    __session = sessionmaker(__engine, expire_on_commit=False, class_=Session)
+    SessionLocal = sessionmaker(bind=__engine, expire_on_commit=False, class_=Session)
 
-    return Session
+    db: Session = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close
 
 
 def create_tables() -> None:

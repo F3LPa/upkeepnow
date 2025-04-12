@@ -1,5 +1,5 @@
 import sqlalchemy as sa
-import sqlalchemy.orm as orm
+from sqlalchemy.orm import relationship
 from sqlalchemy import Column
 
 from datetime import datetime
@@ -25,4 +25,7 @@ class Atividade(Base):
         sa.String(50), sa.ForeignKey("funcionarios.cpf"), nullable=False
     )
 
-    criador = orm.relationship("Funcionario", back_populates="atividades_criadas")
+    criador = relationship("Funcionario", back_populates="atividades_criadas")
+
+    def __repr__(self):
+        return f"<Atividade(ordem_servico={self.ordem_servico}, nome='{self.nome}', tipo='{self.tipo_manutencao}')>"

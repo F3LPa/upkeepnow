@@ -91,3 +91,6 @@ class Logger:
                 f"Invalid log level: {level}. Valid levels are: {', '.join(self.LEVELS.keys())}"
             )
         self.min_level = level
+
+
+logger = Logger()
