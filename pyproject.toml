@@ -10,6 +10,9 @@ packages = [{include = "upkeepnow"}]
 python = "^3.11"
 fastapi = "^0.110.0"
 sqlalchemy = "^2.0.40"
+uvicorn = "^0.34.0"
+dotenv = "^0.9.9"
+pymysql = "^1.1.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.3.2"
