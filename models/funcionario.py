@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship, Mapped
 from sqlalchemy import Column
 
 from datetime import datetime, time
-from typing import List, Optional
+from typing import Optional
 
 from models.model_base import Base
 from models.atividade import Atividade

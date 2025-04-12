@@ -1,8 +1,8 @@
 from fastapi import APIRouter, status, Depends, HTTPException
-from sqlalchemy import and_, select, insert
+from sqlalchemy import insert
 import sqlalchemy.exc as SqlExc
 from auth.models.create_user import CreateUserRequest
-from conf.db_session import create_session, Session, create_tables
+from conf.db_session import create_session, Session
 from models.funcionario import Funcionario
 from logger import logger
 

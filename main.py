@@ -1,6 +1,5 @@
 import fastapi
 import routers.auth as auth
-from conf.db_session import create_tables
 from logger import logger
 
 if __name__ == "__main__":
