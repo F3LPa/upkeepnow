@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Generator, Optional
 
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker, Session
@@ -11,7 +11,7 @@ from models.model_base import Base
 __engine: Optional[Engine] = None
 
 
-def create_engine(sqlite: bool = False) -> Engine:
+def create_engine() -> Engine:
     """
     configura conexao com BD
     """
@@ -34,7 +34,7 @@ def create_engine(sqlite: bool = False) -> Engine:
     return __engine
 
 
-def create_session() -> None:
+def create_session() -> Generator[Session, None, None]:
     global __engine
 
     if not __engine:
@@ -46,7 +46,7 @@ def create_session() -> None:
     try:
         yield db
     finally:
-        db.close
+        db.close()
 
 
 def create_tables() -> None:

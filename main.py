@@ -1,4 +1,5 @@
 import fastapi
+from conf.db_session import create_tables
 import routers.auth as auth
 from logger import logger
 
