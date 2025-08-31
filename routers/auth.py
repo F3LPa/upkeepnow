@@ -62,15 +62,17 @@ async def login(
 
         token = create_access_token(user.email, user.cpf)
 
-        return {
-            "access_token": token,
-            "token_type": "bearer"
-        }
+        return {"access_token": token, "token_type": "bearer"}
     except SqlExc.SQLAlchemyError as exc:
         logger.error("Erro ao tentar fazer login")
         raise exc
 
 
-@router.get('/current_user', description='Busca usuário atual', status_code=status.HTTP_200_OK, response_model=ActiveUserResponse)
+@router.get(
+    "/current_user",
+    description="Busca usuário atual",
+    status_code=status.HTTP_200_OK,
+    response_model=ActiveUserResponse,
+)
 async def current_user(user: Funcionario = Depends(get_current_user)):
     return user

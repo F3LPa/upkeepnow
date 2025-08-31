@@ -48,11 +48,7 @@ def create_access_token(username: str, cpf: str):
     Returns:
         str: Token JWT
     """
-    encode = {
-        "sub": username,
-        "id": cpf,
-        "type": 'access_token'
-    }
+    encode = {"sub": username, "id": cpf, "type": "access_token"}
     expires = datetime.now() + timedelta(ACCESS_TOKEN_EXPIRE_MINUTES)
     encode.update({"exp": expires})
 
@@ -101,10 +97,7 @@ def get_current_user(
 
         user = (
             db.query(Funcionario)
-            .filter(
-                Funcionario.email == username,
-                Funcionario.cpf == user_id
-            )
+            .filter(Funcionario.email == username, Funcionario.cpf == user_id)
             .first()
         )
 
