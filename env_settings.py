@@ -11,14 +11,14 @@ def settings(key: str) -> Any:
     """
     Obtém o valor de uma variável de ambiente específica.
     Args:
-        key: Nome da variável de ambiente        
+        key: Nome da variável de ambiente
     Returns:
         Valor da variável de ambiente ou o valor padrão
     """
     try:
         env_var = os.getenv(key)
-        
+
         return env_var
-    
+
     except AttributeError:
-        logger.error(f'Não foi possível buscar a variavel de ambiente: {key}')
+        logger.error(f"Não foi possível buscar a variavel de ambiente: {key}")

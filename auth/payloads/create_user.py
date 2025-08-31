@@ -11,7 +11,7 @@ class CreateUserRequest(BaseModel):
     telefone: str
     data_nascimento: date
     senha: str
-    departamento:str
+    departamento: str
     cargo: str
     inicio_turno: time
     fim_turno: time
