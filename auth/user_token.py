@@ -10,7 +10,7 @@ from fastapi.security import OAuth2PasswordBearer
 
 from conf.db_session import create_session
 from conf.security import verify_password
-from models.__all_models import Funcionario
+from models import Funcionario
 from env_settings import settings
 
 SECRET_KEY: str = settings("SECRET_KEY")

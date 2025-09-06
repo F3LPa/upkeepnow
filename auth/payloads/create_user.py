@@ -1,7 +1,6 @@
-from datetime import date, datetime, time
+from datetime import date, time
 from typing import Literal
 from pydantic import BaseModel, EmailStr
-from passlib.context import CryptContext
 
 
 class CreateUserRequest(BaseModel):

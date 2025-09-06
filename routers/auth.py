@@ -1,8 +1,8 @@
 from typing import Annotated
 from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import insert
 import sqlalchemy.exc as SqlExc
-from fastapi.security import OAuth2PasswordRequestForm
 
 from auth.payloads.create_user import CreateUserRequest
 from auth.payloads.login_user import ActiveUserResponse

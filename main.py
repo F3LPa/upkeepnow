@@ -1,8 +1,6 @@
 import time
 import fastapi
-import fastapi.middleware
 import routers.auth as auth
-from logger import logger
 
 upkeep = fastapi.FastAPI(
     title="Backend Upkeep Now",
