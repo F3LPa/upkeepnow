@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.future.engine import Engine
 from dotenv import load_dotenv
 
-from models.model_base import Base
+from app.db.base import Base
 
 __engine: Optional[Engine] = None
 

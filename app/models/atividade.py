@@ -5,7 +5,7 @@ from sqlalchemy import Column
 from datetime import datetime
 from typing import Optional
 
-from models.model_base import Base
+from app.conf.base import Base
 
 
 class Atividade(Base):
