@@ -4,12 +4,12 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import insert
 import sqlalchemy.exc as SqlExc
 
-from auth.payloads.create_user import CreateUserRequest
-from auth.payloads.login_user import ActiveUserResponse
-from auth.user_token import create_access_token, get_current_user, user_authenticate
-from conf.db_session import create_session, Session
-from conf.security import hash_password
-from models.funcionario import Funcionario
+from app.schemas.auth.create_user import CreateUserRequest
+from app.schemas.auth.login_user import ActiveUserResponse, Token
+from app.auth.user_token import create_access_token, get_current_user, user_authenticate
+from app.db.db_session import create_session, Session
+from app.auth.security import hash_password
+from app.models.funcionario import Funcionario
 from logger import logger
 
 
@@ -46,7 +46,12 @@ async def create_user(
         raise SqlExc.SQLAlchemyError from exc
 
 
-@router.post("/login", description="Faz login", status_code=status.HTTP_200_OK)
+@router.post(
+    "/login",
+    description="Faz login",
+    status_code=status.HTTP_200_OK,
+    response_model=Token,
+)
 async def login(
     request: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(create_session),

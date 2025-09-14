@@ -10,15 +10,15 @@ class Token(BaseModel):
 
 class ActiveUserResponse(BaseModel):
     cpf: str
-    data_criacao: datetime
+    dataCriacao: datetime
     nome: str
     email: EmailStr
     telefone: str
-    data_nascimento: date
+    dataNascimento: date
     departamento: str
     cargo: str
-    inicio_turno: time
-    fim_turno: time
+    inicioTurno: time
+    fimTurno: time
     nivel: Literal["funcionario", "gestor", "mestre"]
 
     class Config:
