@@ -13,7 +13,7 @@ from app.models.funcionario import Funcionario
 from logger import logger
 
 
-router = APIRouter(prefix="/auth")
+router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post(
@@ -91,5 +91,5 @@ async def current_user(user: Funcionario = Depends(get_current_user)):
         "cargo": user.cargo,
         "inicioTurno": user.inicio_turno,
         "fimTurno": user.fim_turno,
-        "nivel": user.nivel
+        "nivel": user.nivel,
     }

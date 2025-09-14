@@ -2,6 +2,7 @@ import time
 import fastapi
 from fastapi.middleware.cors import CORSMiddleware
 import app.routers.auth as auth
+import app.routers.activitys as activitys
 
 upkeep = fastapi.FastAPI(
     title="Backend Upkeep Now",
@@ -26,3 +27,4 @@ async def add_process_time_header(request: fastapi.Request, call_next):
     return response
 
 upkeep.include_router(auth.router)
+upkeep.include_router(activitys.router)
