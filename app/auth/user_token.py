@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
-from app.conf.db_session import create_session
+from app.db.db_session import create_session
 from app.auth.security import verify_password
 from app.models import Funcionario
 from env_settings import settings

@@ -46,7 +46,12 @@ async def create_user(
         raise SqlExc.SQLAlchemyError from exc
 
 
-@router.post("/login", description="Faz login", status_code=status.HTTP_200_OK, response_model=Token)
+@router.post(
+    "/login",
+    description="Faz login",
+    status_code=status.HTTP_200_OK,
+    response_model=Token,
+)
 async def login(
     request: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(create_session),
