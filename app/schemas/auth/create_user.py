@@ -8,10 +8,10 @@ class CreateUserRequest(BaseModel):
     nome: str
     email: EmailStr
     telefone: str
-    data_nascimento: date
+    dataNascimento: date
     senha: str
     departamento: str
     cargo: str
-    inicio_turno: time
-    fim_turno: time
+    inicioTurno: time
+    fimTurno: time
     nivel: Literal["funcionario", "gestor", "mestre"]
