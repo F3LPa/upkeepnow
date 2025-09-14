@@ -1,12 +1,11 @@
+from datetime import datetime, time
+from typing import Optional
 import sqlalchemy as sa
 from sqlalchemy.orm import relationship, Mapped
 from sqlalchemy import Column
 
-from datetime import datetime, time
-from typing import Optional
-
 from app.db.base import Base
-from models.atividade import Atividade
+from app.models.atividade import Atividade
 
 
 class Funcionario(Base):

@@ -1,6 +1,6 @@
 import time
 import fastapi
-import routers.auth as auth
+import app.routers.auth as auth
 
 upkeep = fastapi.FastAPI(
     title="Backend Upkeep Now",

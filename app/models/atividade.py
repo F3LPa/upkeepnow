@@ -1,9 +1,8 @@
+from datetime import datetime
+from typing import Optional
 import sqlalchemy as sa
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column
-
-from datetime import datetime
-from typing import Optional
 
 from app.db.base import Base
 

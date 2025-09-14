@@ -80,4 +80,16 @@ async def login(
     response_model=ActiveUserResponse,
 )
 async def current_user(user: Funcionario = Depends(get_current_user)):
-    return user
+    return {
+        "cpf": user.cpf,
+        "dataCriacao": user.data_criacao,
+        "nome": user.nome,
+        "email": user.email,
+        "telefone": user.telefone,
+        "dataNascimento": user.data_nascimento,
+        "departamento": user.departamento,
+        "cargo": user.cargo,
+        "inicioTurno": user.inicio_turno,
+        "fimTurno": user.fim_turno,
+        "nivel": user.nivel
+    }
