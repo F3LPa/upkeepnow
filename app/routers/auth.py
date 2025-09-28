@@ -1,108 +1,133 @@
-from datetime import datetime
-from typing import Annotated
-from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import insert
-import sqlalchemy.exc as SqlExc
-
-from app.db.firebase import firestore_db
+from app.services.auth.auth_services import (
+    create_user_service,
+    login_user_service,
+    update_user_service,
+    delete_user_service,
+)
+from app.services.auth.user_token import get_current_user
 from app.schemas.auth.create_user import CreateUserRequest
-from app.schemas.auth.login_user import ActiveUserResponse, Token
-from app.auth.user_token import create_access_token, get_current_user, user_authenticate
-from app.db.db_session import create_session, Session
-from app.auth.security import hash_password
-from app.models.funcionario import Funcionario
-from logger import logger
-
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-@router.post(
-    "/create_user", description="cria usuario", status_code=status.HTTP_201_CREATED
-)
-async def create_user(
-    request: CreateUserRequest, db: Session = Depends(create_session)
-):
+@router.post("/create_user", status_code=status.HTTP_201_CREATED)
+async def create_user(request: CreateUserRequest):
+    """
+    Cria um novo usuário no sistema.
+
+    Endpoint:
+        POST /auth/create_user
+
+    Args:
+        request (CreateUserRequest): Dados do usuário a serem criados (Pydantic).
+
+    Raises:
+        HTTPException 409: Se o usuário já existir.
+        HTTPException 500: Em caso de erro interno do servidor.
+
+    Returns:
+        dict: Mensagem de sucesso.
+    """
     try:
-        validate_user = (
-            db.query(Funcionario).filter(Funcionario.email == request.email).first()
-        )
-
-        if validate_user:
-            logger.error("Erro: Usuário já existente")
-            raise HTTPException(409, "Erro: Usuário já existente")
-        else:
-            new_user_data = request.model_dump()
-            new_user_data["senha"] = hash_password(request.senha)
-            insert_script = insert(Funcionario).values(new_user_data)
-            db.execute(insert_script)
-
-            db.flush()
-            db.commit()
-            db.close()
-            logger.info("Usuário criado com sucesso")
-
-    except SqlExc.SQLAlchemyError as exc:
-        logger.error("Erro ao criar usuário no banco de dados")
-        raise SqlExc.SQLAlchemyError from exc
+        return create_user_service(request.model_dump())
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post(
-    "/login",
-    description="Faz login",
-    status_code=status.HTTP_200_OK,
-    response_model=Token,
-)
-async def login(
-    request: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: Session = Depends(create_session),
-):
+@router.post("/login", status_code=status.HTTP_200_OK)
+async def login(request: OAuth2PasswordRequestForm = Depends()):
+    """
+    Autentica um usuário e retorna um token JWT.
+
+    Endpoint:
+        POST /auth/login
+
+    Args:
+        request (OAuth2PasswordRequestForm): Contém 'username' (email) e 'password'.
+
+    Raises:
+        HTTPException 401: Se credenciais forem inválidas.
+        HTTPException 500: Em caso de erro interno do servidor.
+
+    Returns:
+        dict: Contendo 'access_token' e 'token_type'.
+    """
     try:
-        user: Funcionario = user_authenticate(request.username, request.password, db)
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Credenciais inválidas.",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        token = create_access_token(user.email, user.cpf)
-
-        return {"access_token": token, "token_type": "bearer"}
-    except SqlExc.SQLAlchemyError as exc:
-        logger.error("Erro ao tentar fazer login")
-        raise exc
+        return login_user_service(request.username, request.password)
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get(
-    "/current_user",
-    description="Busca usuário atual",
-    status_code=status.HTTP_200_OK,
-    response_model=ActiveUserResponse,
-)
-async def current_user(user: Funcionario = Depends(get_current_user)):
-    return {
-        "cpf": user.cpf,
-        "dataCriacao": user.data_criacao,
-        "nome": user.nome,
-        "email": user.email,
-        "telefone": user.telefone,
-        "dataNascimento": user.data_nascimento,
-        "departamento": user.departamento,
-        "cargo": user.cargo,
-        "inicioTurno": user.inicio_turno,
-        "fimTurno": user.fim_turno,
-        "nivel": user.nivel,
-    }
+@router.get("/current_user", status_code=status.HTTP_200_OK)
+async def get_current(user_doc: dict = Depends(get_current_user)):
+    """
+    Retorna os dados do usuário atualmente autenticado.
+
+    Endpoint:
+        GET /auth/current_user
+
+    Args:
+        user_doc (dict, optional): Dados do usuário fornecidos pelo dependency get_current_user.
+
+    Returns:
+        dict: Dados do usuário autenticado.
+    """
+    return user_doc
 
 
-@router.post(
-    "/teste/"
-)
-def teste_firebase():
-    doc = firestore_db.collection("usuarios").add({
-        "nome": "felipe teste",
-        "data": datetime.now()
-    })
-    print(doc)
+@router.put("/update", status_code=status.HTTP_200_OK)
+async def update_user(
+    updated_data: CreateUserRequest, user_doc: dict = Depends(get_current_user)
+):
+    """
+    Atualiza os dados do usuário atualmente autenticado.
+
+    Endpoint:
+        PUT /auth/update
+
+    Args:
+        updated_data (CreateUserRequest): Novos dados do usuário (Pydantic).
+        user_doc (dict): Dados do usuário autenticado fornecidos pelo dependency get_current_user.
+
+    Raises:
+        HTTPException 500: Em caso de erro interno do servidor.
+
+    Returns:
+        dict: Mensagem de sucesso.
+    """
+    try:
+        return update_user_service(user_doc, updated_data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/delete", status_code=status.HTTP_200_OK)
+async def delete_user(user_doc: dict = Depends(get_current_user)):
+    """
+    Deleta o usuário atualmente autenticado.
+
+    Endpoint:
+        DELETE /auth/delete
+
+    Args:
+        user_doc (dict): Dados do usuário autenticado fornecidos pelo dependency get_current_user.
+
+    Raises:
+        HTTPException 404: Se o usuário não for encontrado.
+        HTTPException 500: Em caso de erro interno do servidor.
+
+    Returns:
+        dict: Mensagem de sucesso.
+    """
+    try:
+        return delete_user_service(user_doc)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

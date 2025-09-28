@@ -1,8 +1,15 @@
 import firebase_admin
-from firebase_admin.firestore import firestore
-from firebase_admin import credentials
-from app.env_settings import settings
+from firebase_admin import credentials, firestore
 
-cred = credentials.Certificate("app/db/upkeepnow-6ec42-firebase-adminsdk-fbsvc-3cd8c824e3.json")
-firebase_app = firebase_admin.initialize_app(cred)
-firestore_db = firestore.Client()
+cred = credentials.Certificate(
+    "app/db/upkeepnow-6ec42-firebase-adminsdk-fbsvc-59deaef035.json"
+)
+
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
+
+# Pega o projeto do Firebase
+project_id = cred.project_id
+
+# Cria o cliente Firestore usando as credenciais
+firestore_db = firestore.client()  # Use o cliente do firebase_admin
