@@ -32,3 +32,10 @@ class Funcionario(Base):
         return (
             f"<Funcionario(cpf='{self.cpf}', nome='{self.nome}', nivel='{self.nivel}')>"
         )
+
+class FuncionarioF:
+    def __init__(self, cpf: str, nome: str, email: str,
+                telefone: str, data_nascimento: Optional[datetime], senha: str,
+                departamento: Optional[str], cargo: str, inicio_turno: time,
+                fim_turno: time, nivel: Optional[str]):
+        pass

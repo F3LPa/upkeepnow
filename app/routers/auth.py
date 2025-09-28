@@ -1,9 +1,11 @@
+from datetime import datetime
 from typing import Annotated
 from fastapi import APIRouter, status, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import insert
 import sqlalchemy.exc as SqlExc
 
+from app.db.firebase import firestore_db
 from app.schemas.auth.create_user import CreateUserRequest
 from app.schemas.auth.login_user import ActiveUserResponse, Token
 from app.auth.user_token import create_access_token, get_current_user, user_authenticate
@@ -93,3 +95,14 @@ async def current_user(user: Funcionario = Depends(get_current_user)):
         "fimTurno": user.fim_turno,
         "nivel": user.nivel,
     }
+
+
+@router.post(
+    "/teste/"
+)
+def teste_firebase():
+    doc = firestore_db.collection("usuarios").add({
+        "nome": "felipe teste",
+        "data": datetime.now()
+    })
+    print(doc)

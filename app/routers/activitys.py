@@ -1,11 +1,14 @@
 from typing import List, Optional
+from datetime import datetime
 from fastapi import APIRouter, status, Depends, HTTPException, Query
 from sqlalchemy import select
 import sqlalchemy.exc as SqlExc
+from firebase_admin.firestore import firestore
 
 from app.schemas.activity import ActivityCreate, ActivityResponse
 from app.db.db_session import create_session, Session
 from app.models.atividade import Atividade
+from app.db.firebase import firestore_db
 from logger import logger
 
 
@@ -212,3 +215,5 @@ async def filter_atividades(
     except SqlExc.SQLAlchemyError as exc:
         logger.error(f"Erro ao filtrar atividades: {exc}")
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from exc
+
+
