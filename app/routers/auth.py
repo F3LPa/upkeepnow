@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+
 from app.services.auth.auth_services import (
     create_user_service,
     login_user_service,
@@ -10,6 +11,7 @@ from app.services.auth.user_token import get_current_user
 from app.schemas.auth.create_user import CreateUserRequest
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+
 
 
 @router.post("/create_user", status_code=status.HTTP_201_CREATED)

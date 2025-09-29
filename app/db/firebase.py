@@ -1,8 +1,9 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
+from app.env_settings import settings
 
 cred = credentials.Certificate(
-    "app/db/upkeepnow-6ec42-firebase-adminsdk-fbsvc-59deaef035.json"
+    settings("GOOGLE_APPLICATION_CREDENTIALS")
 )
 
 if not firebase_admin._apps:

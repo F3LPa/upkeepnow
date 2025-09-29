@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, status, HTTPException, Query
+from fastapi import APIRouter, Depends, status, HTTPException, Query
 from app.schemas.activity import ActivityCreate, ActivityResponse
 from app.services.activitys.actvitys_services import (
     create_activity_service,
@@ -9,6 +9,7 @@ from app.services.activitys.actvitys_services import (
     list_activities_service,
     filter_activities_service,
 )
+from app.services.auth.user_token import get_current_user
 
 router = APIRouter(prefix="/atividades", tags=["Atividades"])
 
@@ -16,7 +17,7 @@ router = APIRouter(prefix="/atividades", tags=["Atividades"])
 @router.post(
     "/create", status_code=status.HTTP_201_CREATED, response_model=ActivityResponse
 )
-async def create_atividade(request: ActivityCreate):
+async def create_atividade(request: ActivityCreate, user_doc: dict = Depends(get_current_user)):
     """
     Cria uma nova atividade.
 
@@ -40,7 +41,7 @@ async def create_atividade(request: ActivityCreate):
     "/list", status_code=status.HTTP_200_OK, response_model=List[ActivityResponse]
 )
 async def list_atividades(
-    skip: int = Query(0, ge=0), limit: int = Query(100, ge=1, le=1000)
+    skip: int = Query(0, ge=0), limit: int = Query(100, ge=1, le=1000), user_doc: dict = Depends(get_current_user)
 ):
     """
     Lista atividades de forma paginada.
@@ -66,7 +67,7 @@ async def list_atividades(
     status_code=status.HTTP_200_OK,
     response_model=ActivityResponse,
 )
-async def get_atividade(ordem_servico: int):
+async def get_atividade(ordem_servico: int, user_doc: dict = Depends(get_current_user)):
     """
     Busca uma atividade pelo número da ordem de serviço.
 
@@ -94,7 +95,7 @@ async def get_atividade(ordem_servico: int):
     status_code=status.HTTP_200_OK,
     response_model=ActivityResponse,
 )
-async def update_atividade(ordem_servico: int, request: ActivityCreate):
+async def update_atividade(ordem_servico: int, request: ActivityCreate, user_doc: dict = Depends(get_current_user)):
     """
     Atualiza uma atividade existente.
 
@@ -116,7 +117,7 @@ async def update_atividade(ordem_servico: int, request: ActivityCreate):
 
 
 @router.delete("/delete/{ordem_servico}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_atividade(ordem_servico: int):
+async def delete_atividade(ordem_servico: int, user_doc: dict = Depends(get_current_user)):
     """
     Remove uma atividade existente.
 
@@ -145,6 +146,7 @@ async def filter_atividades(
     funcionario_criador: Optional[str] = None,
     skip: int = 0,
     limit: int = 100,
+    user_doc: dict = Depends(get_current_user)
 ):
     """
     Filtra atividades por campos opcionais.
