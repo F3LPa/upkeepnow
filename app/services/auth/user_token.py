@@ -1,23 +1,23 @@
 from datetime import datetime, timedelta
 
 from jose import jwt
-from jose.exceptions import ExpiredSignatureError, JWTError
 
 from sqlalchemy.orm import Session
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, logger, status
 from fastapi.security import OAuth2PasswordBearer
 
-from app.db.db_session import create_session
-from app.auth.security import verify_password
+from app.services.auth.security import verify_password
 from app.models import Funcionario
-from env_settings import settings
+from app.env_settings import settings
+from app.db.firebase import firestore_db  # Import Firebase Firestore
 
 SECRET_KEY: str = settings("SECRET_KEY")
 ALGORITHM: str = settings("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 300
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+COLLECTION = "usuarios"
 
 
 def user_authenticate(email: str, password, db: Session) -> Funcionario:
@@ -49,26 +49,23 @@ def create_access_token(username: str, cpf: str):
         str: Token JWT
     """
     encode = {"sub": username, "id": cpf, "type": "access_token"}
-    expires = datetime.now() + timedelta(ACCESS_TOKEN_EXPIRE_MINUTES)
+    expires = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     encode.update({"exp": expires})
 
     return jwt.encode(encode, key=SECRET_KEY, algorithm=ALGORITHM)
 
 
-def get_current_user(
-    token: str = Depends(oauth2_scheme), db: Session = Depends(create_session)
-) -> Funcionario:
-    """Decodifica o Token para validar autorizacao do sessão atual do usuário
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    """Decodifica o Token para validar autorização do usuário atual.
 
     Args:
-        token (Annotated[str, oauth2__bearer]): Token recebido
+        token (str): Token recebido via Bearer
 
     Raises:
-        HTTPException: Caso a decodificacao não encontre valores
+        HTTPException: Caso a decodificação não encontre valores
 
     Returns:
-        dict: Com email e cpf do Usuario
-
+        dict: Documento do Firebase do usuário
     """
     try:
         payload = jwt.decode(token, key=SECRET_KEY, algorithms=[ALGORITHM])
@@ -95,34 +92,27 @@ def get_current_user(
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        user = (
-            db.query(Funcionario)
-            .filter(Funcionario.email == username, Funcionario.cpf == user_id)
-            .first()
+        # Busca o usuário no Firebase Firestore
+        users_ref = firestore_db.collection(COLLECTION)
+        query = (
+            users_ref.where("email", "==", username.strip().lower())
+            .where("cpf", "==", user_id)
+            .limit(1)
+            .get()
         )
 
-        return user
+        if not query:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
-    except ExpiredSignatureError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expirado",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from e
+        user_doc = query[0].to_dict()
+        user_doc["id"] = query[0].id
+        return user_doc
 
-    except JWTError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from e
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Falha na validação do token",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from e
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error(f"Erro ao decodificar token ou buscar usuário: {exc}")
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar usuário: {exc}")
 
 
 def require_role(cargo_requerido: str):
@@ -134,9 +124,12 @@ def require_role(cargo_requerido: str):
     """
 
     def role_checker(
-        current_user: Funcionario = Depends(get_current_user),
-    ) -> Funcionario:
-        if not hasattr(current_user, "cargo") or current_user.cargo != cargo_requerido:
+        current_user: dict = Depends(get_current_user),
+    ):
+        if (
+            not current_user.get("cargo")
+            or current_user.get("cargo") != cargo_requerido
+        ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Permissão '{cargo_requerido}' necessária",

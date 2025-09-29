@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import datetime, time
 from typing import Literal
 from pydantic import BaseModel, EmailStr
 
@@ -8,7 +8,7 @@ class CreateUserRequest(BaseModel):
     nome: str
     email: EmailStr
     telefone: str
-    dataNascimento: date
+    dataNascimento: datetime
     senha: str
     departamento: str
     cargo: str

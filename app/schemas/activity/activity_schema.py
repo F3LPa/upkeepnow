@@ -24,6 +24,3 @@ class ActivityResponse(BaseModel):
     prioridade: int
     descricao: Optional[str]
     funcionario_criador: str
-
-    class Config:
-        from_attributes = True
