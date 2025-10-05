@@ -1,5 +1,10 @@
 from datetime import datetime
-from app.services.auth.auth_repositories import get_user_by_email, add_user, update_user, delete_user
+from app.services.auth.auth_repositories import (
+    get_user_by_email,
+    add_user,
+    update_user,
+    delete_user,
+)
 from app.services.auth.auth_utils import hash_password, verify_password
 from logger import logger
 
@@ -69,12 +74,7 @@ def login_user_service(user_email: str, password: str):
     # Remover a senha antes de retornar os dados do usuário
     user_dict.pop("senha", None)
 
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "user": user_dict
-    }
-
+    return {"access_token": token, "token_type": "bearer", "user": user_dict}
 
 
 def update_user_service(user_doc: dict, updated_data):

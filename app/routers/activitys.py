@@ -17,7 +17,9 @@ router = APIRouter(prefix="/atividades", tags=["Atividades"])
 @router.post(
     "/create", status_code=status.HTTP_201_CREATED, response_model=ActivityResponse
 )
-async def create_activity(request: ActivityCreate, user_doc: dict = Depends(get_current_user)):
+async def create_activity(
+    request: ActivityCreate, user_doc: dict = Depends(get_current_user)
+):
     """
     Cria uma nova atividade.
 
@@ -42,7 +44,9 @@ async def create_activity(request: ActivityCreate, user_doc: dict = Depends(get_
     "/list", status_code=status.HTTP_200_OK, response_model=List[ActivityResponse]
 )
 async def list_atividades(
-    skip: int = Query(0, ge=0), limit: int = Query(100, ge=1, le=1000), user_doc: dict = Depends(get_current_user)
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    user_doc: dict = Depends(get_current_user),
 ):
     """
     Lista atividades de forma paginada.
@@ -96,7 +100,11 @@ async def get_atividade(ordem_servico: int, user_doc: dict = Depends(get_current
     status_code=status.HTTP_200_OK,
     response_model=ActivityResponse,
 )
-async def update_atividade(ordem_servico: int, request: ActivityCreate, user_doc: dict = Depends(get_current_user)):
+async def update_atividade(
+    ordem_servico: int,
+    request: ActivityCreate,
+    user_doc: dict = Depends(get_current_user),
+):
     """
     Atualiza uma atividade existente.
 
@@ -118,7 +126,9 @@ async def update_atividade(ordem_servico: int, request: ActivityCreate, user_doc
 
 
 @router.delete("/delete/{ordem_servico}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_atividade(ordem_servico: int, user_doc: dict = Depends(get_current_user)):
+async def delete_atividade(
+    ordem_servico: int, user_doc: dict = Depends(get_current_user)
+):
     """
     Remove uma atividade existente.
 
@@ -147,7 +157,7 @@ async def filter_atividades(
     funcionario_criador: Optional[str] = None,
     skip: int = 0,
     limit: int = 100,
-    user_doc: dict = Depends(get_current_user)
+    user_doc: dict = Depends(get_current_user),
 ):
     """
     Filtra atividades por campos opcionais.
