@@ -41,10 +41,7 @@ def create_user_service(user_data: dict):
 
 def login_user_service(user_email: str, password: str):
     """
-    Autentica um usuário e gera um token JWT.
-
-    Verifica se o usuário existe e se a senha corresponde ao hash armazenado.
-    Retorna um token de acesso caso a autenticação seja bem-sucedida.
+    Autentica um usuário, gera um token JWT e retorna os dados do usuário (sem a senha).
 
     Args:
         user_email (str): Email do usuário.
@@ -54,7 +51,7 @@ def login_user_service(user_email: str, password: str):
         ValueError: Se as credenciais forem inválidas.
 
     Returns:
-        dict: Contendo 'access_token' e 'token_type'.
+        dict: Contendo 'access_token', 'token_type' e 'user' com os dados do usuário.
     """
     from app.services.auth.user_token import create_access_token
 
@@ -66,8 +63,18 @@ def login_user_service(user_email: str, password: str):
     if not user_dict.get("senha") or not verify_password(password, user_dict["senha"]):
         raise ValueError("Credenciais inválidas")
 
+    # Gerar token
     token = create_access_token(user_dict["email"], user_dict.get("cpf", ""))
-    return {"access_token": token, "token_type": "bearer"}
+
+    # Remover a senha antes de retornar os dados do usuário
+    user_dict.pop("senha", None)
+
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": user_dict
+    }
+
 
 
 def update_user_service(user_doc: dict, updated_data):

@@ -17,12 +17,13 @@ router = APIRouter(prefix="/atividades", tags=["Atividades"])
 @router.post(
     "/create", status_code=status.HTTP_201_CREATED, response_model=ActivityResponse
 )
-async def create_atividade(request: ActivityCreate, user_doc: dict = Depends(get_current_user)):
+async def create_activity(request: ActivityCreate, user_doc: dict = Depends(get_current_user)):
     """
     Cria uma nova atividade.
 
     Args:
         request (ActivityCreate): Dados da atividade a serem criados.
+        user_doc (dict): Dados do funcionário que está criando a atividade
 
     Returns:
         ActivityResponse: Objeto contendo os dados da atividade criada.
@@ -31,7 +32,7 @@ async def create_atividade(request: ActivityCreate, user_doc: dict = Depends(get
         HTTPException: 500 em caso de erro interno do servidor.
     """
     try:
-        data = create_activity_service(request)
+        data = create_activity_service(request, user_doc)
         return ActivityResponse(**data)
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from e

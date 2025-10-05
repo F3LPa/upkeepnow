@@ -43,7 +43,7 @@ async def create_user(request: CreateUserRequest):
 @router.post("/login", status_code=status.HTTP_200_OK)
 async def login(request: OAuth2PasswordRequestForm = Depends()):
     """
-    Autentica um usuário e retorna um token JWT.
+    Autentica um usuário e retorna um token JWT junto com os dados do usuário.
 
     Endpoint:
         POST /auth/login
@@ -56,7 +56,7 @@ async def login(request: OAuth2PasswordRequestForm = Depends()):
         HTTPException 500: Em caso de erro interno do servidor.
 
     Returns:
-        dict: Contendo 'access_token' e 'token_type'.
+        dict: Contendo 'access_token', 'token_type' e 'user'.
     """
     try:
         return login_user_service(request.username, request.password)

@@ -1,5 +1,5 @@
 from datetime import datetime, time
-from typing import Literal
+from typing import Optional, Literal
 from pydantic import BaseModel, EmailStr
 
 
@@ -10,6 +10,7 @@ class CreateUserRequest(BaseModel):
     telefone: str
     dataNascimento: datetime
     senha: str
+    gestorResponsavel: Optional[str] = None
     departamento: str
     cargo: str
     inicioTurno: time
