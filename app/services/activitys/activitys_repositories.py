@@ -21,18 +21,20 @@ def get_next_ordem_servico():
     return ordem_servico
 
 
-def create_activity(data: dict, ordem_servico: int):
+def create_activity(data: dict, ordem_servico: int, user_doc: dict):
     """
     Salva uma nova atividade no Firestore.
 
     Args:
         data (dict): Dados da atividade a serem salvos.
         ordem_servico (int): Número da ordem de serviço atribuída.
+        user_doc (dict): Dados do funcionário que está criando a atividade
 
     Returns:
         dict: Dados da atividade criada, incluindo o campo `ordem_servico`.
     """
     data["ordem_servico"] = ordem_servico
+    data["funcionario_criador"] = user_doc.get("email")
     firestore_db.collection(COLLECTION).document(str(ordem_servico)).set(data)
     return data
 

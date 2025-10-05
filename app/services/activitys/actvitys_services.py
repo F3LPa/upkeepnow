@@ -11,12 +11,13 @@ from .activitys_repositories import (
 from app.schemas.activity import ActivityCreate
 
 
-def create_activity_service(request: ActivityCreate):
+def create_activity_service(request: ActivityCreate, user_doc: dict):
     """
     Cria uma nova atividade no banco de dados.
 
     Args:
         request (ActivityCreate): Objeto contendo os dados da atividade a ser criada.
+        user_doc (dict): Dados do funcionário que está criando a atividade
 
     Returns:
         dict: Dados da atividade criada, incluindo o número da ordem de serviço.
@@ -27,7 +28,7 @@ def create_activity_service(request: ActivityCreate):
     try:
         data = request.model_dump()
         ordem_servico = get_next_ordem_servico()
-        created = create_activity(data, ordem_servico)
+        created = create_activity(data, ordem_servico, user_doc)
         logger.info(f"Atividade criada com sucesso: OS {ordem_servico}")
         return created
     except Exception as e:
