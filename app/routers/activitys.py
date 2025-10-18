@@ -1,5 +1,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, status, HTTPException, Query
+
+from app.services.auth.user_token import get_current_user
 from app.schemas.activity import ActivityCreate, ActivityResponse
 from app.services.activitys.actvitys_services import (
     create_activity_service,
@@ -8,8 +10,8 @@ from app.services.activitys.actvitys_services import (
     delete_activity_service,
     list_activities_service,
     filter_activities_service,
+    finish_activities
 )
-from app.services.auth.user_token import get_current_user
 
 router = APIRouter(prefix="/atividades", tags=["Atividades"])
 
@@ -179,5 +181,17 @@ async def filter_atividades(
         return filter_activities_service(
             tipo_manutencao, departamento, funcionario_criador, skip, limit
         )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
+
+
+@router.patch('/finish-activity/{ordem_servico}')
+def finish_activity(ordem_servico: int, user_doc: dict = Depends(get_current_user)):
+    try:
+        return finish_activities(ordem_servico)
+    
+    except HTTPException as e:
+        raise HTTPException(409, e.detail) from e
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
