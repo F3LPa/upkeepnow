@@ -10,6 +10,7 @@ class ActivityCreate(BaseModel):
     localizacao: str
     data_abertura: datetime
     data_fechamento: Optional[datetime] = None
+    status: Literal["Pendente", "Agendada", "Concluída"]
     prioridade: Literal["Baixa", "Média", "Alta", "Urgente"]
     descricao: Optional[str] = None
 
@@ -22,6 +23,7 @@ class ActivityResponse(BaseModel):
     localizacao: str
     data_abertura: datetime
     data_fechamento: Optional[datetime]
+    status: Literal["Pendente", "Agendada", "Concluída"]
     prioridade: str
     descricao: Optional[str]
     funcionario_criador: str
