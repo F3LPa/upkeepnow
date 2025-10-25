@@ -25,3 +25,4 @@ class ActivityResponse(BaseModel):
     prioridade: str
     descricao: Optional[str]
     funcionario_criador: str
+    image_url: Optional[str] = None

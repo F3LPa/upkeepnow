@@ -1,11 +1,11 @@
-from typing import List, Optional
-from fastapi import APIRouter, Depends, status, HTTPException, Query
+from typing import List
+from fastapi import APIRouter, Depends
 from app.schemas.chat import ChatResponse
 from app.services.auth.user_token import get_current_user
 from app.services.chat.chat_service import ChatService
 
 
-router = APIRouter(prefix='/chat', tags=['Chat'])
+router = APIRouter(prefix="/chat", tags=["Chat"])
 chat_service = ChatService()
 
 
@@ -14,7 +14,7 @@ def create_chat(activity_id, user_doc: dict = Depends(get_current_user)):
     """
     Cria um novo chat
     """
-    return chat_service.create_chat(activity_id, user_doc['cpf'])
+    return chat_service.create_chat(activity_id, user_doc["cpf"])
 
 
 @router.get("/{chat_id}", response_model=ChatResponse)
@@ -39,4 +39,4 @@ def delete_chat(chat_id: str, user_doc: dict = Depends(get_current_user)):
     """
     Deleta um chat específico
     """
-    return chat_service.delete_chat(chat_id, user_doc['cpf'])
+    return chat_service.delete_chat(chat_id, user_doc["cpf"])

@@ -1,5 +1,6 @@
 from datetime import datetime
 from fastapi import HTTPException
+
 from logger import logger
 from .activitys_repositories import (
     get_next_ordem_servico,
@@ -159,7 +160,7 @@ def filter_activities_service(
 def finish_activities(ordem_servico):
     activity = get_activity(ordem_servico)
 
-    if activity.to_dict()['data_fechamento']:
+    if activity.to_dict()["data_fechamento"]:
         raise HTTPException(409, "Atividade já foi finalizada")
-    
+
     update_activity(ordem_servico, {"data_fechamento": datetime.now()})

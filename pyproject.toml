@@ -19,6 +19,7 @@ passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 python-multipart = "^0.0.20"
 pydantic-settings = "^2.9.1"
 firebase-admin = "^7.1.0"
+google-cloud-storage = "^3.4.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.3.2"
