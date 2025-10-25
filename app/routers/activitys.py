@@ -10,7 +10,7 @@ from app.services.activitys.actvitys_services import (
     delete_activity_service,
     list_activities_service,
     filter_activities_service,
-    finish_activities
+    finish_activities,
 )
 
 router = APIRouter(prefix="/atividades", tags=["Atividades"])
@@ -185,13 +185,13 @@ async def filter_atividades(
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
 
 
-@router.patch('/finish-activity/{ordem_servico}')
+@router.patch("/finish-activity/{ordem_servico}")
 def finish_activity(ordem_servico: int, user_doc: dict = Depends(get_current_user)):
     try:
         return finish_activities(ordem_servico)
-    
+
     except HTTPException as e:
         raise HTTPException(409, e.detail) from e
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
