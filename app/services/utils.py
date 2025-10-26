@@ -1,10 +1,15 @@
 import mimetypes
 from pathlib import Path
-from fastapi import UploadFile
+from fastapi import HTTPException, UploadFile
 from uuid import uuid4
 
+from app.services.activitys.activitys_repositories import update_activity
+from app.services.auth.auth_repositories import update_user_data
 from logger import logger
 from app.db.firebase import get_bucket
+
+MAX_BYTES = 10 * 1024 * 1024
+ALLOWED_MIME = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 
 
 def _safe_ext_from_mime(mime: str, fallback: str = "") -> str:
@@ -48,3 +53,53 @@ def add_image_to_storage(file: UploadFile, data: bytes, source: str):
         "url": public_url,
         "path": object_path,
     }  # acesso temporário seguro
+
+
+async def handle_image_update(
+    file: UploadFile,
+    upload_type: str,
+    user_doc: dict | None = None,
+    ordem_servico: str | None = None,
+) -> dict:
+    """
+    Valida, lê e envia uma imagem ao storage e atualiza o registro correspondente.
+
+    upload_type:
+        - "user" -> atualiza imagem do usuário
+        - "activity" -> atualiza imagem da atividade
+    """
+    if file.content_type not in ALLOWED_MIME:
+        raise HTTPException(
+            status_code=415, detail=f"Tipo não suportado: {file.content_type}"
+        )
+
+    data = await file.read()
+
+    if len(data) == 0:
+        raise HTTPException(status_code=400, detail="Arquivo vazio.")
+
+    if len(data) > MAX_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Arquivo excede {MAX_BYTES // (1024 * 1024)} MB.",
+        )
+
+    # Define comportamento com base no tipo
+    if upload_type == "user":
+        folder = "users"
+        image = add_image_to_storage(file, data, folder)
+        update_user_data(user_doc["id"], {"image_url": image["url"]})
+    elif upload_type == "activity":
+        if not ordem_servico:
+            raise HTTPException(
+                status_code=400, detail="Número da ordem de serviço é obrigatório."
+            )
+        folder = "activities"
+        image = add_image_to_storage(file, data, folder)
+        update_activity(ordem_servico, {"image_url": image["url"]})
+    else:
+        raise HTTPException(
+            status_code=400, detail=f"Tipo de upload inválido: {upload_type}"
+        )
+
+    return image

@@ -10,7 +10,7 @@ from app.services.auth.auth_services import (
     update_user_service,
     delete_user_service,
 )
-from app.services.utils import add_image_to_storage
+from app.services.utils import add_image_to_storage, handle_image_update
 from app.schemas.auth.create_user import CreateUserRequest
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -111,32 +111,34 @@ async def update_user(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.put("/change-user-image/")
+@router.put(
+    "/change-user-image/",
+    status_code=status.HTTP_200_OK,
+)
 async def change_user_image(
-    file: UploadFile = File(), user_doc: dict = Depends(get_current_user)
+    file: UploadFile = File(),
+    user_doc: dict = Depends(get_current_user),
 ):
-    MAX_BYTES = 10 * 1024 * 1024
-    ALLOWED_MIME = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+    """
+    Atualiza a imagem do perfil do usuário autenticado.
 
-    if file.content_type not in ALLOWED_MIME:
-        raise HTTPException(
-            status_code=415, detail=f"Tipo não suportado: {file.content_type}"
-        )
+    Args:
+        file (UploadFile): Arquivo de imagem a ser enviado.
+        user_doc (dict): Documento do usuário autenticado.
 
-    data = await file.read()
+    Returns:
+        JSONResponse: Dados da imagem atualizada.
 
-    if len(data) == 0:
-        raise HTTPException(status_code=400, detail="Arquivo vazio.")
-    if len(data) > 10 * 1024 * 1024:
-        raise HTTPException(
-            status_code=413, detail=f"Arquivo excede {MAX_BYTES // (1024*1024)} MB."
-        )
-
-    image: dict = add_image_to_storage(file, data, "users")
-
-    update_user_data(user_doc["id"], {"image_url": image["url"]})
-
-    return JSONResponse(image, 200)
+    Raises:
+        HTTPException: 400 em caso de erro de validação ou 500 em erro interno do servidor.
+    """
+    try:
+        image = await handle_image_update(file, "user", user_doc)
+        return JSONResponse(image, 200)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
 
 
 @router.delete("/delete", status_code=status.HTTP_200_OK)

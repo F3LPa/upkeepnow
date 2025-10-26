@@ -14,7 +14,7 @@ from app.services.activitys.actvitys_services import (
     filter_activities_service,
     finish_activities,
 )
-from app.services.utils import add_image_to_storage
+from app.services.utils import add_image_to_storage, handle_image_update
 
 router = APIRouter(prefix="/atividades", tags=["Atividades"])
 
@@ -131,32 +131,36 @@ async def update_atividade(
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
 
 
-@router.put("/change-activity-image/{ordem_servico}")
+@router.put(
+    "/change-activity-image/{ordem_servico}",
+    status_code=status.HTTP_200_OK,
+)
 async def change_activity_image(
-    ordem_servico, file: UploadFile = File(), user_doc: dict = Depends(get_current_user)
+    ordem_servico: int,
+    file: UploadFile = File(),
+    user_doc: dict = Depends(get_current_user),
 ):
-    MAX_BYTES = 10 * 1024 * 1024
-    ALLOWED_MIME = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+    """
+    Atualiza a imagem de uma atividade específica.
 
-    if file.content_type not in ALLOWED_MIME:
-        raise HTTPException(
-            status_code=415, detail=f"Tipo não suportado: {file.content_type}"
-        )
+    Args:
+        ordem_servico (int): Número da ordem de serviço da atividade.
+        file (UploadFile): Arquivo de imagem a ser enviado.
+        user_doc (dict): Documento do usuário autenticado.
 
-    data = await file.read()
+    Returns:
+        JSONResponse: Dados da imagem atualizada.
 
-    if len(data) == 0:
-        raise HTTPException(status_code=400, detail="Arquivo vazio.")
-    if len(data) > 10 * 1024 * 1024:
-        raise HTTPException(
-            status_code=413, detail=f"Arquivo excede {MAX_BYTES // (1024*1024)} MB."
-        )
-
-    image: dict = add_image_to_storage(file, data, "activities")
-
-    update_activity(ordem_servico, {"image_url": image["url"]})
-
-    return JSONResponse(image, 200)
+    Raises:
+        HTTPException: 400 em caso de erro de validação ou 500 em erro interno do servidor.
+    """
+    try:
+        image = await handle_image_update(file, "activity", user_doc, ordem_servico)
+        return JSONResponse(image, 200)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
 
 
 @router.delete("/delete/{ordem_servico}", status_code=status.HTTP_204_NO_CONTENT)
