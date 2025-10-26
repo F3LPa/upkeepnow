@@ -2,7 +2,7 @@ from datetime import datetime
 from app.services.auth.auth_repositories import (
     get_user_by_email,
     add_user,
-    update_user,
+    update_user_data,
     delete_user,
 )
 from app.services.auth.auth_utils import hash_password, verify_password
@@ -98,7 +98,7 @@ def update_user_service(user_doc: dict, updated_data):
     if "senha" in data:
         data["senha"] = hash_password(data["senha"])
 
-    update_user(user_doc["id"], data)
+    update_user_data(user_doc["id"], data)
     logger.info(f"Usuário {user_doc['email']} atualizado com sucesso")
     return {"msg": "Usuário atualizado com sucesso"}
 

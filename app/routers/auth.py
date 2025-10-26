@@ -1,13 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
+from app.services.auth.auth_repositories import update_user_data
+from app.services.auth.user_token import get_current_user
 from app.services.auth.auth_services import (
     create_user_service,
     login_user_service,
     update_user_service,
     delete_user_service,
 )
-from app.services.auth.user_token import get_current_user
+from app.services.utils import add_image_to_storage
 from app.schemas.auth.create_user import CreateUserRequest
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -106,6 +109,34 @@ async def update_user(
         return update_user_service(user_doc, updated_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/change-user-image/")
+async def change_user_image(
+    file: UploadFile = File(), user_doc: dict = Depends(get_current_user)
+):
+    MAX_BYTES = 10 * 1024 * 1024
+    ALLOWED_MIME = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+
+    if file.content_type not in ALLOWED_MIME:
+        raise HTTPException(
+            status_code=415, detail=f"Tipo não suportado: {file.content_type}"
+        )
+
+    data = await file.read()
+
+    if len(data) == 0:
+        raise HTTPException(status_code=400, detail="Arquivo vazio.")
+    if len(data) > 10 * 1024 * 1024:
+        raise HTTPException(
+            status_code=413, detail=f"Arquivo excede {MAX_BYTES // (1024*1024)} MB."
+        )
+
+    image: dict = add_image_to_storage(file, data, "users")
+
+    update_user_data(user_doc["id"], {"image_url": image["url"]})
+
+    return JSONResponse(image, 200)
 
 
 @router.delete("/delete", status_code=status.HTTP_200_OK)

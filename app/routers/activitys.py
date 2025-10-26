@@ -1,5 +1,9 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, status, HTTPException, Query
+from fastapi import APIRouter, Depends, File, UploadFile, status, HTTPException, Query
+from fastapi.responses import JSONResponse
+
+from app.services.activitys.activitys_repositories import update_activity
+from app.services.auth.user_token import get_current_user
 from app.schemas.activity import ActivityCreate, ActivityResponse
 from app.services.activitys.actvitys_services import (
     create_activity_service,
@@ -8,8 +12,9 @@ from app.services.activitys.actvitys_services import (
     delete_activity_service,
     list_activities_service,
     filter_activities_service,
+    finish_activities,
 )
-from app.services.auth.user_token import get_current_user
+from app.services.utils import add_image_to_storage
 
 router = APIRouter(prefix="/atividades", tags=["Atividades"])
 
@@ -120,9 +125,38 @@ async def update_atividade(
     """
     try:
         updated = update_activity_service(ordem_servico, request)
+
         return ActivityResponse(**updated)
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
+
+
+@router.put("/change-activity-image/{ordem_servico}")
+async def change_activity_image(
+    ordem_servico, file: UploadFile = File(), user_doc: dict = Depends(get_current_user)
+):
+    MAX_BYTES = 10 * 1024 * 1024
+    ALLOWED_MIME = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+
+    if file.content_type not in ALLOWED_MIME:
+        raise HTTPException(
+            status_code=415, detail=f"Tipo não suportado: {file.content_type}"
+        )
+
+    data = await file.read()
+
+    if len(data) == 0:
+        raise HTTPException(status_code=400, detail="Arquivo vazio.")
+    if len(data) > 10 * 1024 * 1024:
+        raise HTTPException(
+            status_code=413, detail=f"Arquivo excede {MAX_BYTES // (1024*1024)} MB."
+        )
+
+    image: dict = add_image_to_storage(file, data, "activities")
+
+    update_activity(ordem_servico, {"image_url": image["url"]})
+
+    return JSONResponse(image, 200)
 
 
 @router.delete("/delete/{ordem_servico}", status_code=status.HTTP_204_NO_CONTENT)
@@ -179,5 +213,19 @@ async def filter_atividades(
         return filter_activities_service(
             tipo_manutencao, departamento, funcionario_criador, skip, limit
         )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
+
+
+@router.patch("/finish-activity/{ordem_servico}")
+async def finish_activity(
+    ordem_servico: int, user_doc: dict = Depends(get_current_user)
+):
+    try:
+        return finish_activities(ordem_servico)
+
+    except HTTPException as e:
+        raise HTTPException(409, e.detail) from e
+
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from e

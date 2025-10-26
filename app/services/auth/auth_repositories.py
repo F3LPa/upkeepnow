@@ -38,7 +38,7 @@ def add_user(user_data: dict):
     firestore_db.collection(COLLECTION).add(user_data)
 
 
-def update_user(user_id: str, data: dict):
+def update_user_data(user_id: str, data: dict):
     """
     Atualiza os dados de um usuário existente no Firestore.
 
