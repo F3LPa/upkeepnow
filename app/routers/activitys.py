@@ -221,15 +221,41 @@ async def filter_atividades(
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
 
 
-@router.patch("/finish-activity/{ordem_servico}")
+from fastapi import APIRouter, Depends, HTTPException, status
+
+router = APIRouter()
+
+
+@router.patch(
+    "/finish-activity/{ordem_servico}",
+    status_code=status.HTTP_200_OK,
+)
 async def finish_activity(
-    ordem_servico: int, user_doc: dict = Depends(get_current_user)
+    ordem_servico: int,
+    user_doc: dict = Depends(get_current_user),
 ):
+    """
+    Finaliza uma atividade com base na ordem de serviço informada.
+
+    Args:
+        ordem_servico (int): Número da ordem de serviço da atividade a ser finalizada.
+        user_doc (dict): Documento do usuário autenticado.
+
+    Returns:
+        dict: Dados atualizados da atividade finalizada.
+
+    Raises:
+        HTTPException:
+            - 409: Caso a atividade não possa ser finalizada (conflito de estado).
+            - 500: Em caso de erro interno do servidor.
+    """
     try:
-        return finish_activities(ordem_servico)
+        result = finish_activities(ordem_servico)
+        return result
 
     except HTTPException as e:
-        raise HTTPException(409, e.detail) from e
+        # Mantém o status 409 e detalhe do erro original
+        raise HTTPException(status_code=409, detail=e.detail) from e
 
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from e

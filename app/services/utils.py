@@ -13,46 +13,75 @@ ALLOWED_MIME = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 
 
 def _safe_ext_from_mime(mime: str, fallback: str = "") -> str:
-    # tenta deduzir a extensão pela mime; se não conseguir, usa a do filename recebido
+    """
+    Retorna uma extensão de arquivo com base no tipo MIME informado.
+
+    Caso não seja possível deduzir a extensão a partir do MIME,
+    utiliza o valor de fallback fornecido.
+
+    Args:
+        mime (str): Tipo MIME do arquivo (exemplo: "image/png").
+        fallback (str, opcional): Extensão padrão a ser usada se o MIME não for reconhecido.
+            Padrão é uma string vazia.
+
+    Returns:
+        str: Extensão do arquivo, incluindo o ponto (exemplo: ".png").
+    """
     guessed = mimetypes.guess_extension(mime) or ""
     if guessed:
         return guessed
     return fallback
 
 
-def add_image_to_storage(file: UploadFile, data: bytes, source: str):
+def add_image_to_storage(file: UploadFile, data: bytes, source: str) -> dict:
+    """
+    Envia uma imagem para o Firebase Storage e retorna os dados do objeto armazenado.
+
+    Este método gera automaticamente um nome de arquivo único,
+    define o tipo de conteúdo correto, aplica configurações de cache
+    e tenta tornar o arquivo publicamente acessível.
+
+    Args:
+        file (UploadFile): Arquivo de imagem recebido via upload.
+        data (bytes): Conteúdo binário da imagem.
+        source (str): Origem do arquivo (ex: "users", "activities"), usada para organizar o caminho.
+
+    Returns:
+        dict: Dicionário contendo:
+            - "ok" (bool): Indica se o upload foi bem-sucedido.
+            - "url" (str | None): URL pública da imagem, caso tenha sido tornada pública.
+            - "path" (str): Caminho completo do arquivo dentro do bucket.
+
+    Raises:
+        Exception: Caso ocorra erro durante o envio ao bucket ou na geração da URL pública.
+    """
     original_ext = Path(file.filename).suffix.lower()
     ext = _safe_ext_from_mime(file.content_type, original_ext) or ".bin"
 
     object_path = f"{source}/images/{uuid4().hex}{ext}"
 
-    # 4) envia ao Firebase Storage
+    # Envia ao Firebase Storage
     bucket = get_bucket()
     blob = bucket.blob(object_path)
 
-    # boas práticas de cache para conteúdo imutável (opcional)
+    # Define cache e tipo de conteúdo
     blob.cache_control = "public, max-age=31536000, immutable"
-
-    # content_type garante renderização correta no browser
     blob.upload_from_string(data, content_type=file.content_type)
     logger.info("Imagem salva no bucket com sucesso")
 
-    # 5) opções de acesso:
-    #   A) tornar público (simples, mas o objeto fica world-readable):
+    # Torna o objeto público (opcional)
     try:
         blob.make_public()
         public_url = blob.public_url
     except Exception:
         logger.error("Erro ao adicionar imagem no bucket")
-        public_url = (
-            None  # se preferir não tornar público, ignore o erro ou pule esse trecho
-        )
+        public_url = None
 
     return {
         "ok": True,
         "url": public_url,
         "path": object_path,
-    }  # acesso temporário seguro
+    }
 
 
 async def handle_image_update(

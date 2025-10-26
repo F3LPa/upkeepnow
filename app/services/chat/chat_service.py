@@ -94,7 +94,7 @@ class ChatService:
                 status_code=500, detail=f"Erro ao listar chats: {str(e)}"
             )
 
-    def get_chats_by_atividade(self, id_atividade: str) -> List[ChatResponse]:
+    def get_chats_by_activitys(self, id_atividade: str) -> List[ChatResponse]:
         """Lista chats por ID de atividade"""
         try:
             docs = self.collection.where("id_atividade", "==", id_atividade).stream()

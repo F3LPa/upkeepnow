@@ -157,10 +157,25 @@ def filter_activities_service(
         raise e
 
 
-def finish_activities(ordem_servico):
+def finish_activities(ordem_servico: int) -> None:
+    """
+    Finaliza uma atividade existente com base na ordem de serviço informada.
+
+    Verifica se a atividade já foi finalizada. Caso não tenha sido,
+    atualiza o campo `data_fechamento` com a data e hora atuais.
+
+    Args:
+        ordem_servico (int): Número da ordem de serviço da atividade a ser finalizada.
+
+    Raises:
+        HTTPException:
+            - 409: Caso a atividade já tenha sido finalizada anteriormente.
+            - 404: Caso a atividade não exista (caso `get_activity` lance este erro).
+            - 500: Em caso de erro interno ao atualizar a atividade.
+    """
     activity = get_activity(ordem_servico)
 
     if activity.to_dict()["data_fechamento"]:
-        raise HTTPException(409, "Atividade já foi finalizada")
+        raise HTTPException(status_code=409, detail="Atividade já foi finalizada")
 
     update_activity(ordem_servico, {"data_fechamento": datetime.now()})
