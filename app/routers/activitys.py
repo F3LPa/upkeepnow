@@ -2,7 +2,6 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, File, UploadFile, status, HTTPException, Query
 from fastapi.responses import JSONResponse
 
-from app.services.activitys.activitys_repositories import update_activity
 from app.services.auth.user_token import get_current_user
 from app.schemas.activity import ActivityCreate, ActivityResponse
 from app.services.activitys.actvitys_services import (
@@ -14,7 +13,7 @@ from app.services.activitys.actvitys_services import (
     filter_activities_service,
     finish_activities,
 )
-from app.services.utils import add_image_to_storage, handle_image_update
+from app.services.utils import handle_image_update
 
 router = APIRouter(prefix="/atividades", tags=["Atividades"])
 
@@ -220,10 +219,6 @@ async def filter_atividades(
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
 
-
-from fastapi import APIRouter, Depends, HTTPException, status
-
-router = APIRouter()
 
 
 @router.patch(

@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.services.auth.auth_repositories import update_user_data
 from app.services.auth.user_token import get_current_user
 from app.services.auth.auth_services import (
     create_user_service,
@@ -10,7 +9,7 @@ from app.services.auth.auth_services import (
     update_user_service,
     delete_user_service,
 )
-from app.services.utils import add_image_to_storage, handle_image_update
+from app.services.utils import handle_image_update
 from app.schemas.auth.create_user import CreateUserRequest
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
