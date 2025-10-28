@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 
 from app.services.auth.user_token import get_current_user
 from app.schemas.activity import ActivityCreate, ActivityResponse
-from app.services.activitys.actvitys_services import (
+from app.services.activities.activities_services import (
     create_activity_service,
     get_activity_service,
     update_activity_service,
@@ -192,6 +192,7 @@ async def filter_atividades(
     tipo_manutencao: Optional[str] = None,
     departamento: Optional[str] = None,
     funcionario_criador: Optional[str] = None,
+    status: Optional[str] = None,
     skip: int = 0,
     limit: int = 100,
     user_doc: dict = Depends(get_current_user),
@@ -203,6 +204,7 @@ async def filter_atividades(
         tipo_manutencao (str, optional): Tipo de manutenção para filtro.
         departamento (str, optional): Departamento associado à atividade.
         funcionario_criador (str, optional): Funcionário criador da atividade.
+        status (str, optional): status da atividade (Pendete, Concluída ou Agendada).
         skip (int, optional): Quantidade de registros a serem ignorados. Default é 0.
         limit (int, optional): Quantidade máxima de registros retornados. Default é 100.
 
@@ -214,11 +216,10 @@ async def filter_atividades(
     """
     try:
         return filter_activities_service(
-            tipo_manutencao, departamento, funcionario_criador, skip, limit
+            tipo_manutencao, departamento, funcionario_criador, status, skip, limit
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
-
 
 
 @router.patch(

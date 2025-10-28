@@ -35,6 +35,8 @@ def create_activity(data: dict, ordem_servico: int, user_doc: dict):
     """
     data["ordem_servico"] = ordem_servico
     data["funcionario_criador"] = user_doc.get("email")
+    if data.get("recorrencia_dias"):
+        data["ultima_execucao"] = data.get("ultima_execucao") or data["data_abertura"]
     firestore_db.collection(COLLECTION).document(str(ordem_servico)).set(data)
     return data
 
