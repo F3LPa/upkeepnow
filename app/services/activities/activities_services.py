@@ -161,7 +161,7 @@ def filter_activities_service(
         raise e
 
 
-def finish_activities(ordem_servico: int) -> None:
+def change_activity_status(ordem_servico: int) -> None:
     """
     Finaliza uma atividade existente com base na ordem de serviço informada.
 
@@ -178,8 +178,23 @@ def finish_activities(ordem_servico: int) -> None:
             - 500: Em caso de erro interno ao atualizar a atividade.
     """
     activity = get_activity(ordem_servico)
+    
+    activity_status = activity.to_dict()["status"]
 
-    if activity.to_dict()["data_fechamento"]:
+    # ["Pendente", "Em andamento", "Agendada", "Concluída"]
+    if activity_status == "Pendente":
+        updated = update_activity(ordem_servico, {"status": "Em andamento"})
+    
+    elif activity_status == "Em andamento":
+        updated = update_activity(ordem_servico, {"status": "Concluída", "data_fechamento": datetime.now()})
+
+    elif activity_status == "Concluída":
         raise HTTPException(status_code=409, detail="Atividade já foi finalizada")
-
-    update_activity(ordem_servico, {"data_fechamento": datetime.now()})
+    
+    else:
+        raise HTTPException(status_code=500, detail="Atividade não pode ser atualizada")
+    
+    return {
+        "status_anterior": activity_status,
+        "status_atual": updated["status"]
+    }
