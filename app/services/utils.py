@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi import HTTPException, UploadFile
 from uuid import uuid4
 
-from app.services.activitys.activitys_repositories import update_activity
+from app.services.activities.activities_repositories import update_activity
 from app.services.auth.auth_repositories import update_user_data
 from logger import logger
 from app.db.firebase import get_bucket
