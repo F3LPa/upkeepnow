@@ -11,7 +11,7 @@ from app.services.activities.activities_services import (
     delete_activity_service,
     list_activities_service,
     filter_activities_service,
-    finish_activities,
+    change_activity_status,
 )
 from app.services.utils import handle_image_update
 
@@ -223,22 +223,22 @@ async def filter_atividades(
 
 
 @router.patch(
-    "/finish-activity/{ordem_servico}",
+    "/forward_activity/{ordem_servico}",
     status_code=status.HTTP_200_OK,
 )
-async def finish_activity(
+async def forward_activity(
     ordem_servico: int,
     user_doc: dict = Depends(get_current_user),
 ):
     """
-    Finaliza uma atividade com base na ordem de serviço informada.
+    atualiza uma atividade com base na ordem de serviço informada.
 
     Args:
         ordem_servico (int): Número da ordem de serviço da atividade a ser finalizada.
         user_doc (dict): Documento do usuário autenticado.
 
     Returns:
-        dict: Dados atualizados da atividade finalizada.
+        dict: status anterior e status atual da atividade atualizada
 
     Raises:
         HTTPException:
@@ -246,12 +246,12 @@ async def finish_activity(
             - 500: Em caso de erro interno do servidor.
     """
     try:
-        result = finish_activities(ordem_servico)
+        result = change_activity_status(ordem_servico)
         return result
 
     except HTTPException as e:
         # Mantém o status 409 e detalhe do erro original
-        raise HTTPException(status_code=409, detail=e.detail) from e
+        raise HTTPException(status_code=e.status_code, detail=e.detail) from e
 
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
