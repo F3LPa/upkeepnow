@@ -2,7 +2,7 @@ from datetime import datetime
 from fastapi import HTTPException
 
 from logger import logger
-from .activitys_repositories import (
+from .activities_repositories import (
     get_next_ordem_servico,
     create_activity,
     get_activity,
@@ -124,6 +124,7 @@ def filter_activities_service(
     tipo_manutencao: str = None,
     departamento: str = None,
     funcionario_criador: str = None,
+    status: str = None,
     skip: int = 0,
     limit: int = 100,
 ):
@@ -134,6 +135,7 @@ def filter_activities_service(
         tipo_manutencao (str, optional): Tipo de manutenção para filtrar.
         departamento (str, optional): Departamento responsável pela atividade.
         funcionario_criador (str, optional): Identificação do funcionário criador.
+        status (str, optional): status da atividade (Pendete, Concluída ou Agendada).
         skip (int, optional): Quantidade de registros a serem ignorados. Default é 0.
         limit (int, optional): Quantidade máxima de registros retornados. Default é 100.
 
@@ -148,7 +150,9 @@ def filter_activities_service(
             "tipo_manutencao": tipo_manutencao,
             "departamento": departamento,
             "funcionario_criador": funcionario_criador,
+            "status": status,
         }
+
         atividades = filter_activities(filters, skip, limit)
         logger.info(f"Filtro aplicado: {len(atividades)} atividades encontradas")
         return atividades

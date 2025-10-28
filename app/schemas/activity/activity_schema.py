@@ -13,6 +13,8 @@ class ActivityCreate(BaseModel):
     status: Literal["Pendente", "Agendada", "Concluída"]
     prioridade: Literal["Baixa", "Média", "Alta", "Urgente"]
     descricao: Optional[str] = None
+    recorrencia_dias: Optional[int] = None
+    ultima_execucao: Optional[datetime] = None
 
 
 class ActivityResponse(BaseModel):
@@ -28,3 +30,5 @@ class ActivityResponse(BaseModel):
     descricao: Optional[str]
     funcionario_criador: str
     image_url: Optional[str] = None
+    recorrencia_dias: Optional[int] = None
+    ultima_execucao: Optional[datetime] = None
