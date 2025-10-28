@@ -188,6 +188,9 @@ def change_activity_status(ordem_servico: int) -> None:
     elif activity_status == "Em andamento":
         updated = update_activity(ordem_servico, {"status": "Concluída", "data_fechamento": datetime.now()})
 
+    elif activity_status == "Agendada":
+        updated = update_activity(ordem_servico, {"status": "Concluída", "data_fechamento": datetime.now()})
+
     elif activity_status == "Concluída":
         raise HTTPException(status_code=409, detail="Atividade já foi finalizada")
     
