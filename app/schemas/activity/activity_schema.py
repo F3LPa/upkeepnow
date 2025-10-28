@@ -23,7 +23,7 @@ class ActivityResponse(BaseModel):
     localizacao: str
     data_abertura: datetime
     data_fechamento: Optional[datetime]
-    status: Literal["Pendente", "Agendada", "Concluída"]
+    status: Literal["Pendente", "Em andamento", "Agendada", "Concluída"]
     prioridade: str
     descricao: Optional[str]
     funcionario_criador: str
