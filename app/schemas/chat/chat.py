@@ -10,3 +10,6 @@ class ChatResponse(BaseModel):
 
     class Config:
         json_encoders = {datetime: lambda v: v.isoformat()}
+
+class MessageRequest(BaseModel):
+    text: str
