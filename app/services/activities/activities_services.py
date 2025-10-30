@@ -178,26 +178,27 @@ def change_activity_status(ordem_servico: int) -> None:
             - 500: Em caso de erro interno ao atualizar a atividade.
     """
     activity = get_activity(ordem_servico)
-    
+
     activity_status = activity.to_dict()["status"]
 
     # ["Pendente", "Em andamento", "Agendada", "Concluída"]
     if activity_status == "Pendente":
         updated = update_activity(ordem_servico, {"status": "Em andamento"})
-    
+
     elif activity_status == "Em andamento":
-        updated = update_activity(ordem_servico, {"status": "Concluída", "data_fechamento": datetime.now()})
+        updated = update_activity(
+            ordem_servico, {"status": "Concluída", "data_fechamento": datetime.now()}
+        )
 
     elif activity_status == "Agendada":
-        updated = update_activity(ordem_servico, {"status": "Concluída", "data_fechamento": datetime.now()})
+        updated = update_activity(
+            ordem_servico, {"status": "Concluída", "data_fechamento": datetime.now()}
+        )
 
     elif activity_status == "Concluída":
         raise HTTPException(status_code=409, detail="Atividade já foi finalizada")
-    
+
     else:
         raise HTTPException(status_code=500, detail="Atividade não pode ser atualizada")
-    
-    return {
-        "status_anterior": activity_status,
-        "status_atual": updated["status"]
-    }
+
+    return {"status_anterior": activity_status, "status_atual": updated["status"]}
