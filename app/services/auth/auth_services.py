@@ -129,9 +129,8 @@ def delete_user_service(user_doc: dict):
 
 
 def get_all_users():
-
     users_ref = get_users()
-    
+
     users = []
 
     for user_ref in users_ref:
@@ -141,7 +140,6 @@ def get_all_users():
 
 
 def get_user(email: str):
-
     users_ref = get_user_by_email(email)
 
     return users_ref.to_dict()

@@ -13,7 +13,6 @@ from app.services.auth.auth_services import (
 )
 from app.services.utils import handle_image_update
 from app.schemas.auth.create_user import CreateUserRequest
-from logger import logger
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -180,15 +179,15 @@ def list_users(user_doc: dict = Depends(get_current_user)):
         HTTPException: status 401 pois caso seja um funcionario, Unauthorized
 
     Returns:
-        List[Dict]: Lista de json de usuários 
+        List[Dict]: Lista de json de usuários
     """
 
     if user_doc["nivel"] == "gestor" or user_doc["nivel"] == "mestre":
         return get_all_users()
-    
+
     else:
-        raise HTTPException(401,"Usuário não possui acesso a esse recurso")
-    
+        raise HTTPException(401, "Usuário não possui acesso a esse recurso")
+
 
 @router.get("/get-user/{email}")
 def get_user_by_email(email: str, user_doc: dict = Depends(get_current_user)):
@@ -207,6 +206,6 @@ def get_user_by_email(email: str, user_doc: dict = Depends(get_current_user)):
 
     if user_doc["nivel"] == "gestor" or user_doc["nivel"] == "mestre":
         return get_user(email)
-    
+
     else:
-        raise HTTPException(401,"Usuário não possui acesso a esse recurso")
+        raise HTTPException(401, "Usuário não possui acesso a esse recurso")
