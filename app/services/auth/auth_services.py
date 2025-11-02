@@ -1,6 +1,7 @@
 from datetime import datetime
 from app.services.auth.auth_repositories import (
     get_user_by_email,
+    get_users,
     add_user,
     update_user_data,
     delete_user,
@@ -125,3 +126,22 @@ def delete_user_service(user_doc: dict):
     delete_user(user_record.id)
     logger.info(f"Usuário {user_email} deletado com sucesso")
     return {"msg": "Usuário deletado com sucesso"}
+
+
+def get_all_users():
+
+    users_ref = get_users()
+    
+    users = []
+
+    for user_ref in users_ref:
+        users.append(user_ref.to_dict())
+
+    return users
+
+
+def get_user(email: str):
+
+    users_ref = get_user_by_email(email)
+
+    return users_ref.to_dict()

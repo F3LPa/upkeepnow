@@ -24,6 +24,23 @@ def get_user_by_email(email: str):
         return None
     return query[0]
 
+def get_users():
+    """
+    Busca usuários no Firestore.
+
+    Returns:
+        QueryResultsList | None: Retorna lista de documentos dos usuários se encontrado,
+        caso contrário retorna None.
+    """
+    query = (
+        firestore_db.collection(COLLECTION)
+        .get()
+    )
+
+    if not query:
+        return None
+    
+    return query
 
 def add_user(user_data: dict):
     """
