@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import HTTPException
 
 from logger import logger
@@ -10,6 +10,7 @@ from .activities_repositories import (
     delete_activity,
     list_activities,
     filter_activities,
+    update_last_execution,
 )
 from app.schemas.activity import ActivityCreate
 
@@ -70,7 +71,7 @@ def update_activity_service(ordem_servico: int, request: ActivityCreate):
         Exception: Se ocorrer um erro durante a atualização.
     """
     try:
-        data = request.model_dump(exclude_unset=True)
+        data = request.model_dump(exclude_unset=True)   
         updated = update_activity(ordem_servico, data)
         logger.info(f"Atividade atualizada com sucesso: OS {ordem_servico}")
         return updated
@@ -202,3 +203,23 @@ def change_activity_status(ordem_servico: int) -> None:
         raise HTTPException(status_code=500, detail="Atividade não pode ser atualizada")
 
     return {"status_anterior": activity_status, "status_atual": updated["status"]}
+
+def update_last_execution_service(ordem_servico: int) -> dict:
+    """
+    Atualiza apenas o campo 'ultima_execucao' de uma atividade diretamente na coleção.
+
+    Args:
+        ordem_servico (int): Número da ordem de serviço da atividade.
+
+    Returns:
+        dict: Dados atualizados da atividade.
+
+    Raises:
+        ValueError: Se a atividade não for encontrada.
+        Exception: Se ocorrer erro durante a atualização.
+    """
+    activity = get_activity(ordem_servico)
+    if not activity:
+        raise ValueError(f"Atividade com OS {ordem_servico} não encontrada")
+
+    return update_last_execution(ordem_servico)

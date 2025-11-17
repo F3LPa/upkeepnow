@@ -12,6 +12,7 @@ from app.services.activities.activities_services import (
     list_activities_service,
     filter_activities_service,
     change_activity_status,
+    update_last_execution_service,
 )
 from app.services.utils import handle_image_update
 
@@ -255,3 +256,35 @@ async def forward_activity(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
+    
+
+@router.patch(
+    "/update-last-execution/{ordem_servico}",
+    status_code=status.HTTP_200_OK,
+    response_model=ActivityResponse,
+)
+async def update_last_execution(
+    ordem_servico: int,
+    user_doc: dict = Depends(get_current_user),
+):
+    """
+    Atualiza apenas o campo 'ultima_execucao' de uma atividade com a data/hora atual UTC.
+
+    Args:
+        ordem_servico (int): Número da ordem de serviço da atividade.
+        user_doc (dict): Dados do usuário autenticado (obtidos via dependência).
+
+    Returns:
+        ActivityResponse: Objeto contendo os dados da atividade atualizada.
+
+    Raises:
+        HTTPException: 404 se a atividade não for encontrada.
+        HTTPException: 500 em caso de erro interno do servidor.
+    """
+    try:
+        updated = update_last_execution_service(ordem_servico)
+        return ActivityResponse(**updated)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Erro interno do servidor")

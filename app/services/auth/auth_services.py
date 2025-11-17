@@ -6,6 +6,7 @@ from app.services.auth.auth_repositories import (
     delete_user,
 )
 from app.services.auth.auth_utils import hash_password, verify_password
+from app.services.auth.user_token import create_access_token
 from logger import logger
 
 
@@ -79,28 +80,34 @@ def login_user_service(user_email: str, password: str):
 
 def update_user_service(user_doc: dict, updated_data):
     """
-    Atualiza os dados de um usuário existente.
-
-    Normaliza email, converte horários, realiza hash da senha se necessário
-    e atualiza o documento no Firestore.
-
-    Args:
-        user_doc (dict): Dicionário com os dados do usuário autenticado, incluindo 'id'.
-        updated_data: Objeto Pydantic com os novos dados do usuário.
-
-    Returns:
-        dict: Mensagem de sucesso.
+    Atualiza os dados de um usuário existente e retorna o user atualizado
+    + (opcionalmente) um novo token, como o app Flutter espera.
     """
     data = updated_data.model_dump()
     data["email"] = data["email"].strip().lower()
     data["inicioTurno"] = data["inicioTurno"].strftime("%H:%M:%S")
     data["fimTurno"] = data["fimTurno"].strftime("%H:%M:%S")
-    if "senha" in data:
-        data["senha"] = hash_password(data["senha"])
+
+    senha = data.get("senha")
+
+    if senha is not None and senha.strip() != "":
+        data["senha"] = hash_password(senha)
+    else:
+        data.pop("senha", None)
 
     update_user_data(user_doc["id"], data)
+
+    updated_user = get_user_by_email(user_doc["email"])
+    new_user_doc = updated_user.to_dict()
+    new_token = create_access_token(new_user_doc["email"], new_user_doc["cpf"])
     logger.info(f"Usuário {user_doc['email']} atualizado com sucesso")
-    return {"msg": "Usuário atualizado com sucesso"}
+
+    return {
+        "user": new_user_doc,
+        "token": new_token,
+        "msg": "Usuário atualizado com sucesso"
+    }
+
 
 
 def delete_user_service(user_doc: dict):
