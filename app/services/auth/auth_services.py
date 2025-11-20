@@ -105,9 +105,8 @@ def update_user_service(user_doc: dict, updated_data):
     return {
         "user": new_user_doc,
         "token": new_token,
-        "msg": "Usuário atualizado com sucesso"
+        "msg": "Usuário atualizado com sucesso",
     }
-
 
 
 def delete_user_service(user_doc: dict):

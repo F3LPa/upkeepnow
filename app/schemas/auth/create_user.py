@@ -17,6 +17,7 @@ class CreateUserRequest(BaseModel):
     fimTurno: time
     nivel: Literal["funcionario", "gestor", "mestre"]
 
+
 class UpdateUserRequest(BaseModel):
     cpf: str
     nome: str

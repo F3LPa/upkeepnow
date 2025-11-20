@@ -256,7 +256,7 @@ async def forward_activity(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
-    
+
 
 @router.patch(
     "/update-last-execution/{ordem_servico}",
@@ -287,4 +287,4 @@ async def update_last_execution(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Erro interno do servidor")
+        raise HTTPException(status_code=500, detail=f"Erro interno do servidor: {e}")

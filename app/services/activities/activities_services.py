@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from fastapi import HTTPException
 
 from logger import logger
@@ -71,7 +71,7 @@ def update_activity_service(ordem_servico: int, request: ActivityCreate):
         Exception: Se ocorrer um erro durante a atualização.
     """
     try:
-        data = request.model_dump(exclude_unset=True)   
+        data = request.model_dump(exclude_unset=True)
         updated = update_activity(ordem_servico, data)
         logger.info(f"Atividade atualizada com sucesso: OS {ordem_servico}")
         return updated
@@ -203,6 +203,7 @@ def change_activity_status(ordem_servico: int) -> None:
         raise HTTPException(status_code=500, detail="Atividade não pode ser atualizada")
 
     return {"status_anterior": activity_status, "status_atual": updated["status"]}
+
 
 def update_last_execution_service(ordem_servico: int) -> dict:
     """
