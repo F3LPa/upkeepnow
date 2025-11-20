@@ -2,8 +2,10 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
+from app.schemas.auth.change_password import ChangePasswordRequest
 from app.services.auth.user_token import get_current_user
 from app.services.auth.auth_services import (
+    change_password_service,
     create_user_service,
     login_user_service,
     update_user_service,
@@ -138,6 +140,32 @@ async def change_user_image(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
+    
+@router.put("/change_password", status_code=status.HTTP_200_OK)
+async def change_password(
+    request: ChangePasswordRequest,
+    user_doc: dict = Depends(get_current_user),
+):
+    """
+    Altera a senha do usuário autenticado.
+
+    Args:
+        request (ChangePasswordRequest): Contém senha atual e nova senha.
+        user_doc (dict): Dados do usuário autenticado.
+
+    Raises:
+        HTTPException 400: Se a senha atual estiver incorreta.
+        HTTPException 500: Em caso de erro interno.
+
+    Returns:
+        dict: Mensagem de sucesso.
+    """
+    try:
+        return change_password_service(user_doc, request)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/delete", status_code=status.HTTP_200_OK)
