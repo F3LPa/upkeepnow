@@ -12,7 +12,7 @@ from app.services.auth.auth_services import (
     delete_user_service,
 )
 from app.services.utils import handle_image_update
-from app.schemas.auth.create_user import CreateUserRequest
+from app.schemas.auth.create_user import CreateUserRequest, UpdateUserRequest
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -88,7 +88,7 @@ async def get_current(user_doc: dict = Depends(get_current_user)):
 
 @router.put("/update", status_code=status.HTTP_200_OK)
 async def update_user(
-    updated_data: CreateUserRequest, user_doc: dict = Depends(get_current_user)
+    updated_data: UpdateUserRequest, user_doc: dict = Depends(get_current_user)
 ):
     """
     Atualiza os dados do usuário atualmente autenticado.
@@ -97,7 +97,7 @@ async def update_user(
         PUT /auth/update
 
     Args:
-        updated_data (CreateUserRequest): Novos dados do usuário (Pydantic).
+        updated_data (UpdateUserRequest): Novos dados do usuário (Pydantic).
         user_doc (dict): Dados do usuário autenticado fornecidos pelo dependency get_current_user.
 
     Raises:

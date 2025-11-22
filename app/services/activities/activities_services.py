@@ -10,6 +10,7 @@ from .activities_repositories import (
     delete_activity,
     list_activities,
     filter_activities,
+    update_last_execution,
 )
 from app.schemas.activity import ActivityCreate
 
@@ -202,3 +203,24 @@ def change_activity_status(ordem_servico: int) -> None:
         raise HTTPException(status_code=500, detail="Atividade não pode ser atualizada")
 
     return {"status_anterior": activity_status, "status_atual": updated["status"]}
+
+
+def update_last_execution_service(ordem_servico: int) -> dict:
+    """
+    Atualiza apenas o campo 'ultima_execucao' de uma atividade diretamente na coleção.
+
+    Args:
+        ordem_servico (int): Número da ordem de serviço da atividade.
+
+    Returns:
+        dict: Dados atualizados da atividade.
+
+    Raises:
+        ValueError: Se a atividade não for encontrada.
+        Exception: Se ocorrer erro durante a atualização.
+    """
+    activity = get_activity(ordem_servico)
+    if not activity:
+        raise ValueError(f"Atividade com OS {ordem_servico} não encontrada")
+
+    return update_last_execution(ordem_servico)

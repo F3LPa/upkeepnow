@@ -1,3 +1,4 @@
+from datetime import datetime
 from app.db.firebase import firestore_db
 
 COLLECTION = "atividades"
@@ -68,6 +69,18 @@ def update_activity(ordem_servico: int, data: dict):
     """
     doc_ref = firestore_db.collection(COLLECTION).document(str(ordem_servico))
     doc_ref.update(data)
+    return doc_ref.get().to_dict()
+
+
+def update_last_execution(ordem_servico: int) -> dict:
+    """
+    Atualiza diretamente o campo ultima_execucao via Firestore.
+    """
+    doc_ref = firestore_db.collection(COLLECTION).document(str(ordem_servico))
+
+    data_atual = datetime.now()
+    doc_ref.update({"ultima_execucao": data_atual})
+
     return doc_ref.get().to_dict()
 
 
