@@ -6,6 +6,8 @@ from app.schemas.auth.change_password import ChangePasswordRequest
 from app.services.auth.user_token import get_current_user
 from app.services.auth.auth_services import (
     change_password_service,
+    get_user,
+    get_all_users,
     create_user_service,
     login_user_service,
     update_user_service,
@@ -192,3 +194,46 @@ async def delete_user(user_doc: dict = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/list-users")
+def list_users(user_doc: dict = Depends(get_current_user)):
+    """Lista todos os usuarios caso o usuario seja gestor ou mestre
+
+    Args:
+        user_doc (dict, optional): valida token. Defaults to Depends(get_current_user).
+
+    Raises:
+        HTTPException: status 401 pois caso seja um funcionario, Unauthorized
+
+    Returns:
+        List[Dict]: Lista de json de usuários
+    """
+
+    if user_doc["nivel"] == "gestor" or user_doc["nivel"] == "mestre":
+        return get_all_users()
+
+    else:
+        raise HTTPException(401, "Usuário não possui acesso a esse recurso")
+
+
+@router.get("/get-user/{email}")
+def get_user_by_email(email: str, user_doc: dict = Depends(get_current_user)):
+    """retorna um usuario caso o usuario seja gestor ou mestre
+
+    Args:
+        email (str): email do usuario procurado.
+        user_doc (dict, optional): valida token. Defaults to Depends(get_current_user).
+
+    Raises:
+        HTTPException: status 401 pois caso seja um funcionario, Unauthorized
+
+    Returns:
+        Dict: retorna um usuario
+    """
+
+    if user_doc["nivel"] == "gestor" or user_doc["nivel"] == "mestre":
+        return get_user(email)
+
+    else:
+        raise HTTPException(401, "Usuário não possui acesso a esse recurso")
