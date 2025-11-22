@@ -134,6 +134,43 @@ def delete_user_service(user_doc: dict):
     return {"msg": "Usuário deletado com sucesso"}
 
 
+def change_password_service(user_doc: dict, request):
+    """
+    Altera a senha do usuário autenticado.
+
+    Verifica a senha atual, gera hash para a nova senha e atualiza no Firestore.
+
+    Args:
+        user_doc (dict): Documento do usuário autenticado (contém id e email).
+        request (ChangePasswordRequest): Contém 'current_password' e 'new_password'.
+
+    Raises:
+        ValueError: Se a senha atual estiver incorreta.
+
+    Returns:
+        dict: Mensagem de sucesso.
+    """
+    user_email = user_doc.get("email")
+    user_record = get_user_by_email(user_email)
+
+    if not user_record:
+        raise ValueError("Usuário não encontrado")
+
+    user_data = user_record.to_dict()
+
+    # Verifica senha atual
+    if not verify_password(request.current_password, user_data["senha"]):
+        raise ValueError("Senha atual incorreta")
+
+    # Hash da nova senha
+    new_hashed_password = hash_password(request.new_password)
+
+    # Atualiza no banco
+    update_user_data(user_record.id, {"senha": new_hashed_password})
+
+    logger.info(f"Senha do usuário {user_email} alterada com sucesso")
+
+    return {"msg": "Senha alterada com sucesso"}
 def get_all_users():
     users_ref = get_users()
 
