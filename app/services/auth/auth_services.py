@@ -171,6 +171,8 @@ def change_password_service(user_doc: dict, request):
     logger.info(f"Senha do usuário {user_email} alterada com sucesso")
 
     return {"msg": "Senha alterada com sucesso"}
+
+
 def get_all_users():
     users_ref = get_users()
 

@@ -119,34 +119,36 @@ class ChatService:
             raise HTTPException(
                 status_code=500, detail=f"Erro ao buscar chats por atividade: {str(e)}"
             )
-        
+
     def get_chat_by_ordem_servico(self, ordem_servico: int) -> dict | None:
         """
         Busca um chat associado a uma ordem de serviço específica.
-        
+
         Args:
             ordem_servico (int): Número da ordem de serviço
-            
+
         Returns:
             dict | None: Dados do chat encontrado (incluindo o ID) ou None se não existir
         """
         try:
             ordem_servico_str = str(ordem_servico)
-            
+
             # Query para buscar chat com a ordem_servico especificada
-            chats_ref = self.collection.where("ordem_servico", "==", ordem_servico_str).limit(1).stream()
-            
+            chats_ref = (
+                self.collection.where("ordem_servico", "==", ordem_servico_str)
+                .limit(1)
+                .stream()
+            )
+
             for chat_doc in chats_ref:
                 chat_data = chat_doc.to_dict()
                 chat_data["id"] = chat_doc.id
                 return chat_data
-            
+
             return None
-            
+
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            return None
+            raise e
 
     def check_chat(self, activity_id):
         """
@@ -217,7 +219,7 @@ class ChatService:
             response_data = data.copy()
             response_data["enviado_em"] = enviado_em.isoformat()
             response_data["id"] = mensagem_ref.id
-            
+
             return response_data
 
         except exceptions.GoogleCloudError as e:
@@ -328,6 +330,6 @@ class ChatService:
                     "imagem_autor": None,
                 }
             )
-            
+
         mensagem_ref.set(data)
         return data

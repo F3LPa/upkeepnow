@@ -181,7 +181,7 @@ def change_activity_status(ordem_servico: int) -> None:
             - 500: Em caso de erro interno ao atualizar a atividade.
     """
     from app.services.chat.chat_service import ChatService
-    
+
     activity = get_activity(ordem_servico)
     activity_status = activity.to_dict()["status"]
     chat_service = ChatService()
@@ -210,36 +210,35 @@ def change_activity_status(ordem_servico: int) -> None:
     return {"status_anterior": activity_status, "status_atual": updated["status"]}
 
 
-def _delete_associated_chat(chat_service: ChatService, ordem_servico: int, activity) -> None:
+def _delete_associated_chat(
+    chat_service: ChatService, ordem_servico: int, activity
+) -> None:
     """
     Função auxiliar para deletar o chat associado a uma ordem de serviço.
     """
     try:
         # Busca o chat associado à ordem de serviço
         chat = chat_service.get_chat_by_ordem_servico(ordem_servico)
-        
+
         if chat:
             # Pega o documento completo da atividade
             activity_data = activity.to_dict()
-            
+
             # Tenta diferentes campos possíveis para o owner
             owner = (
-                activity_data.get("criador") or 
-                activity_data.get("cpf_responsavel") or
-                activity_data.get("cpf_tecnico") or
-                chat.get("criador")  # Usa o criador do próprio chat como fallback
+                activity_data.get("criador")
+                or activity_data.get("cpf_responsavel")
+                or activity_data.get("cpf_tecnico")
+                or chat.get("criador")  # Usa o criador do próprio chat como fallback
             )
-            
-            # Deleta o chat
-            result = chat_service.delete_chat(chat["id"], owner)
-            
+
+            chat_service.delete_chat(chat["id"], owner)
+
     except HTTPException as e:
         if e.status_code == 404:
             raise e
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-
+        raise e
 
 def update_last_execution_service(ordem_servico: int) -> dict:
     """

@@ -142,7 +142,8 @@ async def change_user_image(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro interno do servidor") from e
-    
+
+
 @router.put("/change_password", status_code=status.HTTP_200_OK)
 async def change_password(
     request: ChangePasswordRequest,
