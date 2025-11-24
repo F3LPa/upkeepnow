@@ -16,7 +16,7 @@ class ChatService:
         """Cria um novo chat no Firestore"""
         try:
             existing_chats = self.collection.where(
-                "id_atividade", "==", activity_id
+                "ordem_servico", "==", activity_id
             ).get()
 
             # Verifica se a lista NÃO está vazia (tem documentos)
@@ -25,7 +25,7 @@ class ChatService:
 
             # Prepara os dados para inserção
             chat_dict = {
-                "id_atividade": activity_id,
+                "ordem_servico": activity_id,
                 "criador": owner,
                 "created_at": datetime.now(),
             }
@@ -37,7 +37,7 @@ class ChatService:
             # Retorna o chat criado
             return ChatResponse(
                 id=chat_id,
-                id_atividade=activity_id,
+                ordem_servico=activity_id,
                 criador=owner,
                 created_at=chat_dict["created_at"],
             )
@@ -63,7 +63,7 @@ class ChatService:
             data = doc.to_dict()
             return ChatResponse(
                 id=doc.id,
-                id_atividade=data["id_atividade"],
+                ordem_servico=data["ordem_servico"],
                 criador=data["criador"],
                 created_at=data["created_at"],
             )
@@ -85,7 +85,7 @@ class ChatService:
                 chats.append(
                     ChatResponse(
                         id=doc.id,
-                        id_atividade=data["id_atividade"],
+                        ordem_servico=data["ordem_servico"],
                         criador=data["criador"],
                         created_at=data["created_at"],
                     )
@@ -97,10 +97,10 @@ class ChatService:
                 status_code=500, detail=f"Erro ao listar chats: {str(e)}"
             )
 
-    def get_chats_by_activities(self, id_atividade: str) -> List[ChatResponse]:
+    def get_chats_by_activities(self, ordem_servico: str) -> List[ChatResponse]:
         """Lista chats por ID de atividade"""
         try:
-            docs = self.collection.where("id_atividade", "==", id_atividade).stream()
+            docs = self.collection.where("ordem_servico", "==", ordem_servico).stream()
             chats = []
 
             for doc in docs:
@@ -108,7 +108,7 @@ class ChatService:
                 chats.append(
                     ChatResponse(
                         id=doc.id,
-                        id_atividade=data["id_atividade"],
+                        ordem_servico=data["ordem_servico"],
                         criador=data["criador"],
                         created_at=data["created_at"],
                     )
@@ -120,16 +120,46 @@ class ChatService:
                 status_code=500, detail=f"Erro ao buscar chats por atividade: {str(e)}"
             )
 
+    def get_chat_by_ordem_servico(self, ordem_servico: int) -> dict | None:
+        """
+        Busca um chat associado a uma ordem de serviço específica.
+
+        Args:
+            ordem_servico (int): Número da ordem de serviço
+
+        Returns:
+            dict | None: Dados do chat encontrado (incluindo o ID) ou None se não existir
+        """
+        try:
+            ordem_servico_str = str(ordem_servico)
+
+            # Query para buscar chat com a ordem_servico especificada
+            chats_ref = (
+                self.collection.where("ordem_servico", "==", ordem_servico_str)
+                .limit(1)
+                .stream()
+            )
+
+            for chat_doc in chats_ref:
+                chat_data = chat_doc.to_dict()
+                chat_data["id"] = chat_doc.id
+                return chat_data
+
+            return None
+
+        except Exception as e:
+            raise e
+
     def check_chat(self, activity_id):
         """
         Verifica se já existe um chat associado a uma determinada atividade.
 
         Este método realiza uma consulta na coleção principal de chats,
-        procurando por documentos que contenham o campo `id_atividade` com o
+        procurando por documentos que contenham o campo `ordem_servico` com o
         valor fornecido. É útil para evitar a criação de múltiplos chats para
         a mesma atividade.
         """
-        existing_chats = self.collection.where("id_atividade", "==", activity_id).get()
+        existing_chats = self.collection.where("ordem_servico", "==", activity_id).get()
 
         if len(existing_chats) == 1:
             return True
@@ -168,12 +198,14 @@ class ChatService:
         os metadados necessários para controle de edição e exclusão.
         """
 
+        enviado_em = datetime.now()
+
         data = {
-            "id_autor": user["id"],
-            "nome_autor": user["nome"],
-            "imagem_autor": user["image_url"],
+            "id_autor": user.get("cpf"),
+            "nome_autor": user.get("nome"),
+            "imagem_autor": user.get("image_url", None),
             "conteudo": conteudo,
-            "enviado_em": datetime.now(),
+            "enviado_em": enviado_em,
             "editado": False,
             "apagado": False,
         }
@@ -184,7 +216,11 @@ class ChatService:
 
             mensagem_ref.set(data)
 
-            return data
+            response_data = data.copy()
+            response_data["enviado_em"] = enviado_em.isoformat()
+            response_data["id"] = mensagem_ref.id
+
+            return response_data
 
         except exceptions.GoogleCloudError as e:
             raise exceptions.GoogleCloudError("Erro ao enviar mensagem") from e
@@ -244,7 +280,7 @@ class ChatService:
         )
 
         data: dict = mensagem_ref.get().to_dict()
-        if user["id"] != data["id_autor"]:
+        if user["cpf"] != data["id_autor"]:
             raise HTTPException(
                 status_code=401,
                 detail="Usuário não pode editar uma mensagem que não enviou",
@@ -266,11 +302,6 @@ class ChatService:
     def delete_message(self, chat_id: str, mensagem_id, user: dict):
         """
         Marca uma mensagem como apagada em um chat no Firestore.
-
-        Este método realiza a exclusão lógica de uma mensagem, preservando o registro
-        no banco de dados, mas removendo seu conteúdo e imagem associados. Apenas o
-        autor original da mensagem pode apagá-la. Se a mensagem já estiver marcada
-        como apagada, a operação é bloqueada.
         """
 
         mensagem_ref = (
@@ -281,7 +312,7 @@ class ChatService:
 
         data: dict = mensagem_ref.get().to_dict()
 
-        if user["id"] != data["id_autor"]:
+        if user["cpf"] != data["id_autor"]:
             raise HTTPException(
                 status_code=401,
                 detail="Usuário não pode apagar uma mensagem que não enviou",
@@ -299,3 +330,6 @@ class ChatService:
                     "imagem_autor": None,
                 }
             )
+
+        mensagem_ref.set(data)
+        return data

@@ -4,7 +4,7 @@ from datetime import datetime
 
 class ChatResponse(BaseModel):
     id: str
-    id_atividade: str
+    ordem_servico: str
     criador: str
     created_at: datetime
 
