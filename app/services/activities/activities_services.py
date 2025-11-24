@@ -1,6 +1,7 @@
 from datetime import datetime
 from fastapi import HTTPException
 
+from app.services.chat.chat_service import ChatService
 from logger import logger
 from .activities_repositories import (
     get_next_ordem_servico,
@@ -168,6 +169,7 @@ def change_activity_status(ordem_servico: int) -> None:
 
     Verifica se a atividade já foi finalizada. Caso não tenha sido,
     atualiza o campo `data_fechamento` com a data e hora atuais.
+    Também deleta o chat associado caso a atividade seja concluída.
 
     Args:
         ordem_servico (int): Número da ordem de serviço da atividade a ser finalizada.
@@ -178,11 +180,12 @@ def change_activity_status(ordem_servico: int) -> None:
             - 404: Caso a atividade não exista (caso `get_activity` lance este erro).
             - 500: Em caso de erro interno ao atualizar a atividade.
     """
+    from app.services.chat.chat_service import ChatService
+    
     activity = get_activity(ordem_servico)
-
     activity_status = activity.to_dict()["status"]
+    chat_service = ChatService()
 
-    # ["Pendente", "Em andamento", "Agendada", "Concluída"]
     if activity_status == "Pendente":
         updated = update_activity(ordem_servico, {"status": "Em andamento"})
 
@@ -190,11 +193,13 @@ def change_activity_status(ordem_servico: int) -> None:
         updated = update_activity(
             ordem_servico, {"status": "Concluída", "data_fechamento": datetime.now()}
         )
+        _delete_associated_chat(chat_service, ordem_servico, activity)
 
     elif activity_status == "Agendada":
         updated = update_activity(
             ordem_servico, {"status": "Concluída", "data_fechamento": datetime.now()}
         )
+        _delete_associated_chat(chat_service, ordem_servico, activity)
 
     elif activity_status == "Concluída":
         raise HTTPException(status_code=409, detail="Atividade já foi finalizada")
@@ -203,6 +208,37 @@ def change_activity_status(ordem_servico: int) -> None:
         raise HTTPException(status_code=500, detail="Atividade não pode ser atualizada")
 
     return {"status_anterior": activity_status, "status_atual": updated["status"]}
+
+
+def _delete_associated_chat(chat_service: ChatService, ordem_servico: int, activity) -> None:
+    """
+    Função auxiliar para deletar o chat associado a uma ordem de serviço.
+    """
+    try:
+        # Busca o chat associado à ordem de serviço
+        chat = chat_service.get_chat_by_ordem_servico(ordem_servico)
+        
+        if chat:
+            # Pega o documento completo da atividade
+            activity_data = activity.to_dict()
+            
+            # Tenta diferentes campos possíveis para o owner
+            owner = (
+                activity_data.get("criador") or 
+                activity_data.get("cpf_responsavel") or
+                activity_data.get("cpf_tecnico") or
+                chat.get("criador")  # Usa o criador do próprio chat como fallback
+            )
+            
+            # Deleta o chat
+            result = chat_service.delete_chat(chat["id"], owner)
+            
+    except HTTPException as e:
+        if e.status_code == 404:
+            raise e
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
 
 
 def update_last_execution_service(ordem_servico: int) -> dict:

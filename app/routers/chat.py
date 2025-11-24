@@ -15,7 +15,7 @@ def create_chat(activity_id, user_doc: dict = Depends(get_current_user)):
     """
     Cria um novo chat
     """
-    return chat_service.create_chat(activity_id, user_doc["cpf"])
+    return chat_service.create_chat(activity_id, user_doc["nome"])
 
 
 @router.get("/get-chat/{chat_id}", response_model=ChatResponse)
